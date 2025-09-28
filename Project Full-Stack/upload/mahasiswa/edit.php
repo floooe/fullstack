@@ -48,9 +48,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         NRP: <input type="text" name="nrp" value="<?= htmlspecialchars($data['nrp']); ?>" required><br><br>
         Nama: <input type="text" name="nama_mahasiswa" value="<?= htmlspecialchars($data['nama_mahasiswa']); ?>" required><br><br>
         Jurusan: <input type="text" name="jurusan" value="<?= htmlspecialchars($data['jurusan']); ?>" required><br><br>
+        
         Foto Saat Ini: <br>
-        <img src="../uploads/mahasiswa/<?= htmlspecialchars($data['foto']); ?>" width="100"><br>
-        Ganti Foto (kosongkan jika tidak ingin ganti): <input type="file" name="foto"><br><br>
+        <?php if (!empty($data['foto'])): ?>
+            <img src="../uploads/mahasiswa/<?= htmlspecialchars($data['foto']); ?>" width="100"><br>
+        <?php else: ?>
+            <span>Tidak ada foto</span><br>
+        <?php endif; ?>
+
+        Ganti Foto (kosongkan jika tidak ingin ganti): 
+        <input type="file" name="foto" accept=".jpg,.jpeg,.png"><br><br>
+
         <input type="hidden" name="foto_lama" value="<?= htmlspecialchars($data['foto']); ?>">
         <button type="submit">Update</button>
     </form>
