@@ -49,19 +49,103 @@ $mysqli->close();
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
     <title>Tambah Dosen</title>
 </head>
 <body>
-    <h2>Tambah Data Dosen</h2>
-    
-    <form action="tambah.php" method="POST" enctype="multipart/form-data">
-        NPK: <input type="text" name="npk" required><br><br>
-        Nama: <input type="text" name="nama" required><br><br>
-        Foto: <input type="file" name="foto"><br><br>
-        <button type="submit">Simpan</button>
-    </form>
+    <div class="container">
+        <h2>Tambah Data Dosen</h2>
+        
+        <form action="tambah.php" method="POST" enctype="multipart/form-data">
+            <label for="npk">NPK</label>
+            <input type="text" id="npk" name="npk" required>
 
+            <label for="nama">Nama</label>
+            <input type="text" id="nama" name="nama" required>
+
+            <label for="foto">Foto</label>
+            <input type="file" id="foto" name="foto">
+
+            <button type="submit">💾 Simpan</button>
+        </form>
+
+        <a href="index.php" class="back-link">← Kembali ke Daftar Dosen</a>
+    </div>
+
+    <!-- CSS dipisah di bawah -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            padding: 4px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s ease-in-out;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            text-decoration: none;
+            color: #007BFF;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </body>
 </html>
