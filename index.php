@@ -27,8 +27,8 @@
 <p>Silakan pilih menu untuk mengelola data:</p>
 
 <div class="menu">
-  <a href="dosen.php">Kelola Data Dosen</a>
-  <a href="mahasiswa.php">Kelola Data Mahasiswa</a>
+  <a href="Project Full-Stack/upload/dosen/index.php">Kelola Data Dosen</a>
+  <a href="Project Full-Stack/upload/mahasiswa/index.php">Kelola Data Mahasiswa</a>
 </div>
 
 </body>
