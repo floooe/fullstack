@@ -27,34 +27,32 @@ $result = $stmt->get_result();
     <style>
     body {
         font-family: Arial, sans-serif;
-        background-color: #f8f9fa;
+        background-color: whitesmoke; 
         margin: 20px;
     }
-
     h2 {
         text-align: center;
-        color: #333;
+        color: black; 
         margin-bottom: 20px;
     }
-
     a {
         text-decoration: none;
-        color: #007BFF;
+        color: blue; 
     }
-
     a:hover {
         text-decoration: underline;
     }
-
     .btn-add {
         display: inline-block;
         padding: 8px 15px;
-        background-color: #28a745;
+        background-color: green; 
         color: white;
         border-radius: 4px;
         margin-bottom: 15px;
     }
-
+    .btn-add:hover {
+        background-color: darkgreen; 
+    }
     table {
         border-collapse: collapse;
         margin: auto;
@@ -62,46 +60,39 @@ $result = $stmt->get_result();
         background: white;
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-
-    th, td {
-        border: 1px solid #ddd;
+    th, td{
+        border: 1px solid lightgray; 
         padding: 10px 15px;
         text-align: center;
     }
-
     th {
-        background-color: #007BFF;
+        background-color: blue; 
         color: white;
     }
-
     .pagination {
         text-align: center;
         margin-top: 15px;
     }
-
-    .pagination a, .pagination b {
+    .pagination a, .pagination b{
         display: inline-block;
         padding: 8px 12px;
-        border: 1px solid #ddd;
+        border: 1px solid lightgray;
         margin: 0 3px;
         text-decoration: none;
-        color: #333;
+        color: black;
         border-radius: 4px;
     }
-
-    .pagination a:hover {
-        background-color: #007BFF;
+    .pagination a:hover{
+        background-color: blue; 
         color: white;
-        border-color: #007BFF;
+        border-color: blue;
     }
-
-    .pagination b {
-        background-color: #007BFF;
+    .pagination b{
+        background-color: blue;
         color: white;
-        border-color: #007BFF;
+        border-color: blue;
     }
 </style>
-
 </head>
 <body>
 
