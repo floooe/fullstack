@@ -37,7 +37,7 @@ $res = $stmt->get_result();
 <body>
 
 <h2>Daftar Mahasiswa</h2>
-<a href="tambah_mhs.php">Tambah Mahasiswa Baru</a>
+<a href="tambah.php">Tambah Mahasiswa Baru</a>
 <br><br>
 
 <table>
@@ -66,8 +66,8 @@ while ($row = $res->fetch_assoc()) {
     }
 
     echo "<td>
-            <a href='edit_mhs.php?id={$row['id']}'>Edit</a> | 
-            <a href='hapus_mhs.php?id={$row['id']}' onclick=\"return confirm('Yakin ingin menghapus data ini?');\">Hapus</a>
+            <a href='edit.php?id={$row['id']}'>Edit</a> | 
+            <a href='hapus.php?id={$row['id']}' onclick=\"return confirm('Yakin ingin menghapus data ini?');\">Hapus</a>
           </td>";
     echo "</tr>";
     $no++;
