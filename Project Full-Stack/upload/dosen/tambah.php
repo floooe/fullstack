@@ -75,13 +75,13 @@ $mysqli->close();
     </div>
 
     <style>
-        body {
+        body{
             font-family: Arial, sans-serif;
             background-color: #f8f9fa;
             margin: 0;
             padding: 20px;
         }
-        .container {
+        .container{
             max-width: 500px;
             margin: 40px auto;
             padding: 25px;
@@ -89,18 +89,18 @@ $mysqli->close();
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        h2 {
+        h2{
             text-align: center;
             margin-bottom: 25px;
             color: #333;
         }
-        label {
+        label{
             display: block;
             margin-bottom: 6px;
             font-weight: bold;
             color: #444;
         }
-        button {
+        button{
             display: block;
             width: 100%;
             padding: 10px;
@@ -112,8 +112,17 @@ $mysqli->close();
             cursor: pointer;
             transition: background 0.2s ease-in-out;
         }
-        button:hover {
+        button:hover{
             background: #0056b3;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            text-decoration: none;
+            color: #007BFF;
+        }
+        .back-link:hover {
+            text-decoration: underline;
         }
     </style>
 </body>
