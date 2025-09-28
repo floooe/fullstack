@@ -74,7 +74,6 @@ $mysqli->close();
         <a href="index.php" class="back-link">← Kembali ke Daftar Dosen</a>
     </div>
 
-    <!-- CSS dipisah di bawah -->
     <style>
         body {
             font-family: Arial, sans-serif;
