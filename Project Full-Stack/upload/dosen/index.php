@@ -1,5 +1,5 @@
 <?php
-$mysqli = new mysqli("localhost", 'root', '', 'dbkampus');
+$mysqli = new mysqli("localhost", 'root', '', 'fullstack');
 if ($mysqli->connect_errno) {
     die("Failed to connect to MySQL: " . $mysqli->connect_error);
 }
