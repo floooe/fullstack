@@ -55,10 +55,6 @@ $result = $stmt->get_result();
         margin-bottom: 15px;
     }
 
-    .btn-add:hover {
-        background-color: #218838;
-    }
-
     table {
         border-collapse: collapse;
         margin: auto;
@@ -76,10 +72,6 @@ $result = $stmt->get_result();
     th {
         background-color: #007BFF;
         color: white;
-    }
-
-    tr:nth-child(even) {
-        background-color: #f2f2f2;
     }
 
     .pagination {
