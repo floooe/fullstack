@@ -57,15 +57,67 @@ $mysqli->close();
 <html>
 <head>
     <title>Tambah Mahasiswa</title>
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            background-color: lightgray;
+            margin: 0;
+            padding: 40px;
+        }
+        h2{
+            text-align: center;
+            color: darkblue;
+            margin-bottom: 20px;
+        }
+        form{
+            max-width: 400px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 0 8px gray;
+        }
+        label{
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: black;
+        }=
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid gray;
+            border-radius: 4px;
+        }
+        button{
+            background-color: green;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover{
+            background-color: darkgreen;
+        }
+    </style>
 </head>
 <body>
     <h2>Tambah Data Mahasiswa</h2>
     
     <form action="tambah.php" method="POST" enctype="multipart/form-data">
-        NRP: <input type="text" name="nrp" required><br><br>
-        Nama: <input type="text" name="nama" required><br><br> Foto: <input type="file" name="foto"><br><br>
+        <label for="nrp">NRP:</label>
+        <input type="text" name="nrp" id="nrp" required>
+
+        <label for="nama">Nama:</label>
+        <input type="text" name="nama" id="nama" required>
+
+        <label for="foto">Foto:</label>
+        <input type="file" name="foto" id="foto">
+
         <button type="submit">Simpan</button>
     </form>
-
 </body>
 </html>
