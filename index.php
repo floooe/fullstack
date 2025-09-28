@@ -4,20 +4,37 @@
   <meta charset="UTF-8">
   <title>Dashboard Admin</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 40px; }
-    h2 { margin-bottom: 20px; }
-    .menu { margin-top: 20px; }
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 0;
+      background-color: lightblue; 
+      text-align: center; 
+    }
+    h2 { 
+      margin-top: 100px; 
+      margin-bottom: 10px; 
+      color: black; 
+    }
+    p {
+      margin-bottom: 20px;
+      color: gray;
+    }
+    .menu { 
+      margin-top: 20px; 
+    }
     .menu a {
       display: inline-block;
       margin: 10px;
-      padding: 10px 20px;
-      background: #007bff;
+      padding: 12px 24px;
+      background: blue; 
       color: white;
       text-decoration: none;
       border-radius: 6px;
+      transition: background 0.3s;
+      font-weight: bold;
     }
     .menu a:hover {
-      background: #0056b3;
+      background: navy; 
     }
   </style>
 </head>
