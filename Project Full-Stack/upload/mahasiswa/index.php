@@ -1,25 +1,7 @@
 <?php
-$mysqli = new mysqli("localhost", 'root', '', 'fullstack');
-if ($mysqli->connect_errno) {
-    die("Failed to connect to MySQL: " . $mysqli->connect_error);
-}
-
-// --- Ambil parameter pagination ---
-$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
-$page  = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-if ($page < 1) $page = 1;
-$offset = ($page - 1) * $limit;
-
-// --- Hitung total data mahasiswa ---
-$resultTotal = $mysqli->query("SELECT COUNT(*) as total FROM mahasiswa");
-$totalData   = $resultTotal->fetch_assoc()['total'];
-$totalPage   = ceil($totalData / $limit);
-
-// --- Query data mahasiswa sesuai pagination ---
-$stmt = $mysqli->prepare("SELECT id, nrp, nama, email, foto FROM mahasiswa LIMIT ?, ?");
-$stmt->bind_param("ii", $offset, $limit);
-$stmt->execute();
-$res = $stmt->get_result();
+require '/proses/koneksi.php';
+$query = "SELECT * FROM mahasiswa";
+$result = mysqli_query($koneksi, $query);
 ?>
 
 <!DOCTYPE html>
