@@ -25,12 +25,36 @@ $result = $stmt->get_result();
     <meta charset="UTF-8">
     <title>Data Mahasiswa</title>
     <style>
-        body { font-family: sans-serif; }
-        table { border-collapse: collapse; margin-bottom: 20px; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .pagination a, .pagination b { display: inline-block; padding: 8px 12px; border: 1px solid #ddd; margin: 0 3px; text-decoration: none; color: #333; }
-        .pagination b { background-color: #007BFF; color: white; border-color: #007BFF; }
+        <style>
+    body { 
+        font-family: sans-serif; 
+    }
+    table { 
+        border-collapse: collapse; 
+        margin-bottom: 20px; 
+        width: 100%; 
+    }
+    th, td { 
+        border: 1px solid lightgray; 
+        padding: 8px 12px; 
+        text-align: left; 
+    }
+    th { 
+        background-color: lightgray; 
+    }
+    .pagination a, .pagination b { 
+        display: inline-block; 
+        padding: 8px 12px; 
+        border: 1px solid lightgray; 
+        margin: 0 3px; 
+        text-decoration: none; 
+        color: black; 
+    }
+    .pagination b { 
+        background-color: blue;
+        color: white; 
+        border-color: blue; 
+    }
     </style>
 </head>
 <body>
