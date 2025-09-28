@@ -6,7 +6,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nama = $_POST['nama_mahasiswa'];
     $jurusan = $_POST['jurusan'];
     
-    // Logika Upload Foto
     $foto = $_FILES['foto'];
     $nama_foto = $nrp . '.' . pathinfo($foto['name'], PATHINFO_EXTENSION); // Nama file: nrp.jpg
     $lokasi_upload = "../uploads/mahasiswa/" . $nama_foto;

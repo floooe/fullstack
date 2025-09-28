@@ -13,9 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     $nama_foto = $foto_lama;
 
-    // Jika ada foto baru diupload
     if ($_FILES['foto']['name']) {
-        // Hapus foto lama
         if (file_exists("../uploads/mahasiswa/" . $foto_lama)) {
             unlink("../uploads/mahasiswa/" . $foto_lama);
         }
