@@ -74,7 +74,7 @@ $mysqli->close();
     <style>
         body{
             font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
+            background-color: white;
             margin: 0;
             padding: 20px;
         }
@@ -82,27 +82,27 @@ $mysqli->close();
             max-width: 500px;
             margin: 40px auto;
             padding: 25px;
-            background: #ffffff;
+            background: while;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         h2{
             text-align: center;
             margin-bottom: 25px;
-            color: #333;
+            color: #252020ff;
         }
         label{
             display: block;
             margin-bottom: 6px;
             font-weight: bold;
-            color: #444;
+            color: grey;
         }
         button{
             display: block;
             width: 100%;
             padding: 10px;
-            background: #007BFF;
-            color: #fff;
+            background: light blue;
+            color: solid white;
             border: none;
             border-radius: 5px;
             font-size: 15px;
@@ -110,13 +110,13 @@ $mysqli->close();
             transition: background 0.2s ease-in-out;
         }
         button:hover{
-            background: #0056b3;
+            background: dark blue;
         }
         .back-link {
             display: inline-block;
             margin-top: 15px;
             text-decoration: none;
-            color: #007BFF;
+            color: solid blue;
         }
         .back-link:hover {
             text-decoration: underline;
