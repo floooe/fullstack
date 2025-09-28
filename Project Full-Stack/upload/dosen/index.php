@@ -25,13 +25,91 @@ $result = $stmt->get_result();
     <meta charset="UTF-8">
     <title>Data Dosen</title>
     <style>
-        body { font-family: sans-serif; }
-        table { border-collapse: collapse; margin-bottom: 20px; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .pagination a, .pagination b { display: inline-block; padding: 8px 12px; border: 1px solid #ddd; margin: 0 3px; text-decoration: none; color: #333; }
-        .pagination b { background-color: #007BFF; color: white; border-color: #007BFF; }
-    </style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+        margin: 20px;
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    a {
+        text-decoration: none;
+        color: #007BFF;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    .btn-add {
+        display: inline-block;
+        padding: 8px 15px;
+        background-color: #28a745;
+        color: white;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+
+    .btn-add:hover {
+        background-color: #218838;
+    }
+
+    table {
+        border-collapse: collapse;
+        margin: auto;
+        width: 90%;
+        background: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 10px 15px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #007BFF;
+        color: white;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    .pagination {
+        text-align: center;
+        margin-top: 15px;
+    }
+
+    .pagination a, .pagination b {
+        display: inline-block;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        margin: 0 3px;
+        text-decoration: none;
+        color: #333;
+        border-radius: 4px;
+    }
+
+    .pagination a:hover {
+        background-color: #007BFF;
+        color: white;
+        border-color: #007BFF;
+    }
+
+    .pagination b {
+        background-color: #007BFF;
+        color: white;
+        border-color: #007BFF;
+    }
+</style>
+
 </head>
 <body>
 
