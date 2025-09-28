@@ -1,5 +1,8 @@
 <?php
-require '../koneksi.php';
+$mysqli = new mysqli("localhost", 'root', '', 'fullstack');
+if ($mysqli->connect_errno) {
+    die("Gagal terhubung ke MySQL: " . $mysqli->connect_error);
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nrp = $_POST['nrp'];
