@@ -1,29 +1,22 @@
 <?php
-// 1. KONEKSI DATABASE
 $mysqli = new mysqli("localhost", 'root', '', 'fullstack');
 if ($mysqli->connect_errno) {
     die("Koneksi Gagal: " . $mysqli->connect_error);
 }
 
-// 2. AMBIL NRP DARI URL
-// Pastikan NRP ada di URL, jika tidak, hentikan program
 if (!isset($_GET['nrp'])) {
     die("Error: NRP mahasiswa tidak ditemukan.");
 }
 $nrp_asli = $_GET['nrp'];
 
-// 3. PROSES UPDATE JIKA FORM DISUBMIT (METHOD POST)
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Ambil data dari form
     $nrp_baru = $_POST['nrp'];
     $nama_baru = $_POST['nama'];
-    $ext_foto_lama = $_POST['ext_foto_lama']; // Ambil ekstensi foto lama dari hidden input
+    $ext_foto_lama = $_POST['ext_foto_lama']; 
     
-    $ext_foto_final = $ext_foto_lama; // Defaultnya, pakai ekstensi lama
+    $ext_foto_final = $ext_foto_lama;
 
-    // 4. LOGIKA JIKA ADA FOTO BARU DIUPLOAD
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
-        // Hapus foto lama terlebih dahulu
         if (!empty($ext_foto_lama)) {
             $file_foto_lama = "../../uploads/mahasiswa/" . $nrp_asli . '.' . $ext_foto_lama;
             if (file_exists($file_foto_lama)) {
@@ -31,7 +24,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
 
-        // Proses foto baru
         $foto_baru = $_FILES['foto'];
         $ext_foto_final = pathinfo($foto_baru['name'], PATHINFO_EXTENSION);
         $nama_file_baru = $nrp_baru . '.' . $ext_foto_final;
@@ -42,7 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // 5. UPDATE DATA KE DATABASE
     $query = "UPDATE mahasiswa SET nrp = ?, nama = ?, foto_extention = ? WHERE nrp = ?";
     $stmt = $mysqli->prepare($query);
     $stmt->bind_param('ssss', $nrp_baru, $nama_baru, $ext_foto_final, $nrp_asli);
@@ -56,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->close();
 }
 
-// 6. AMBIL DATA SAAT INI UNTUK DITAMPILKAN DI FORM (METHOD GET)
 $query = "SELECT nrp, nama, foto_extention FROM mahasiswa WHERE nrp = ?";
 $stmt = $mysqli->prepare($query);
 $stmt->bind_param('s', $nrp_asli);

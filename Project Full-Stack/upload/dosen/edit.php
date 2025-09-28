@@ -1,17 +1,14 @@
 <?php
-// 1. KONEKSI DATABASE
 $mysqli = new mysqli("localhost", 'root', '', 'fullstack');
 if ($mysqli->connect_errno) {
     die("Koneksi Gagal: " . $mysqli->connect_error);
 }
 
-// 2. AMBIL NPK ASLI DARI URL
 if (!isset($_GET['npk'])) {
     die("Error: NPK dosen tidak ditemukan.");
 }
 $npk_asli = $_GET['npk'];
 
-// 3. PROSES UPDATE JIKA FORM DISUBMIT
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $npk_baru = $_POST['npk'];
     $nama_baru = $_POST['nama'];
@@ -19,9 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     $ext_foto_final = $ext_foto_lama;
 
-    // 4. LOGIKA JIKA ADA FOTO BARU DIUPLOAD
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
-        // Hapus foto lama
         if (!empty($ext_foto_lama)) {
             $file_foto_lama = "../../uploads/dosen/" . $npk_asli . '.' . $ext_foto_lama;
             if (file_exists($file_foto_lama)) {
@@ -29,7 +24,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
 
-        // Proses foto baru
         $foto_baru = $_FILES['foto'];
         $ext_foto_final = pathinfo($foto_baru['name'], PATHINFO_EXTENSION);
         $nama_file_baru = $npk_baru . '.' . $ext_foto_final;
@@ -40,7 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // 5. UPDATE DATA KE DATABASE
     $query = "UPDATE dosen SET npk = ?, nama = ?, foto_extension = ? WHERE npk = ?";
     $stmt = $mysqli->prepare($query);
     $stmt->bind_param('ssss', $npk_baru, $nama_baru, $ext_foto_final, $npk_asli);
@@ -54,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->close();
 }
 
-// 6. AMBIL DATA SAAT INI UNTUK DITAMPILKAN DI FORM
 $query = "SELECT npk, nama, foto_extension FROM dosen WHERE npk = ?";
 $stmt = $mysqli->prepare($query);
 $stmt->bind_param('s', $npk_asli);

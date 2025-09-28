@@ -1,22 +1,17 @@
 <?php
-// 1. KONEKSI DATABASE
 $mysqli = new mysqli("localhost", 'root', '', 'fullstack');
 if ($mysqli->connect_errno) {
     die("Koneksi Gagal: " . $mysqli->connect_error);
 }
 
-// 2. LOGIKA PAGINATION
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-// Hitung total data menggunakan kolom 'nrp' karena 'id' tidak ada
 $totalResult = $mysqli->query("SELECT COUNT(nrp) AS total FROM mahasiswa");
 $totalData = $totalResult->fetch_assoc()['total'];
 $totalPage = ceil($totalData / $limit);
 
-// 3. AMBIL DATA DARI DATABASE SESUAI STRUKTUR TABEL ANDA
-// Mengurutkan berdasarkan 'nrp' karena 'id' tidak ada
 $sql = "SELECT nrp, nama, foto_extention FROM mahasiswa ORDER BY nrp DESC LIMIT ? OFFSET ?";
 $stmt = $mysqli->prepare($sql);
 $stmt->bind_param('ii', $limit, $offset);
@@ -65,10 +60,8 @@ $result = $stmt->get_result();
         
         <td>
             <?php
-            // FIX: Logika menampilkan foto berdasarkan nrp dan foto_extention
             if (!empty($data['foto_extention'])) {
                 $nama_file_foto = htmlspecialchars($data['nrp']) . '.' . htmlspecialchars($data['foto_extention']);
-                // Path disesuaikan menjadi ../ karena file ada di dalam folder 'mahasiswa'
                 echo "<img src='../uploads/mahasiswa/{$nama_file_foto}' height='75'>";
             } else {
                 echo "-";

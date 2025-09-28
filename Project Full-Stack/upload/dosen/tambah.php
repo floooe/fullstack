@@ -1,17 +1,14 @@
 <?php
-// 1. KONEKSI DATABASE
 $mysqli = new mysqli("localhost", 'root', '', 'fullstack');
 if ($mysqli->connect_errno) {
     die("Koneksi Gagal: " . $mysqli->connect_error);
 }
 
-// 2. PROSES FORM JIKA DISUBMIT
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     $npk = $_POST['npk'];
     $nama = $_POST['nama'];
 
-    // Validasi NPK duplikat
     $check_stmt = $mysqli->prepare("SELECT npk FROM dosen WHERE npk = ?");
     $check_stmt->bind_param('s', $npk);
     $check_stmt->execute();
@@ -34,7 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // SIMPAN DATA KE DATABASE
     $query = "INSERT INTO dosen (npk, nama, foto_extension) VALUES (?, ?, ?)";
     $stmt = $mysqli->prepare($query);
     $stmt->bind_param('sss', $npk, $nama, $foto_extension);

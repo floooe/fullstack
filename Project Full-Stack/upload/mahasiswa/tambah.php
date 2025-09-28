@@ -1,29 +1,23 @@
 <?php
-// 1. KONEKSI DATABASE
 $mysqli = new mysqli("localhost", 'root', '', 'fullstack');
 if ($mysqli->connect_errno) {
     die("Koneksi Gagal: " . $mysqli->connect_error);
 }
 
-// 2. PROSES FORM JIKA DISUBMIT
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
-    // Ambil data dari form
     $nrp = $_POST['nrp'];
     $nama = $_POST['nama'];
 
-    // LANGKAH VALIDASI: Cek dulu apakah NRP sudah ada
     $check_stmt = $mysqli->prepare("SELECT nrp FROM mahasiswa WHERE nrp = ?");
     $check_stmt->bind_param('s', $nrp);
     $check_stmt->execute();
     $check_stmt->store_result();
 
     if ($check_stmt->num_rows > 0) {
-        // Jika num_rows > 0, artinya NRP sudah ada
         die("ERROR: NRP '{$nrp}' sudah terdaftar. Silakan gunakan NRP lain.");
     }
     $check_stmt->close();
-    // Jika NRP aman, lanjutkan proses di bawah
 
     $foto_extension = null;
     
@@ -38,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // SIMPAN DATA KE DATABASE
     $query = "INSERT INTO mahasiswa (nrp, nama, foto_extention) VALUES (?, ?, ?)";
     $stmt = $mysqli->prepare($query);
     if ($stmt === false) {

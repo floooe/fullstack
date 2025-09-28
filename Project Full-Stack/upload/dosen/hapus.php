@@ -1,15 +1,12 @@
 <?php
-// 1. KONEKSI DATABASE
 $mysqli = new mysqli("localhost", 'root', '', 'fullstack');
 if ($mysqli->connect_errno) {
     die("Koneksi Gagal: " . $mysqli->connect_error);
 }
 
-// 2. AMBIL NPK DARI URL
 if (isset($_GET['npk'])) {
     $npk_to_delete = $_GET['npk'];
 
-    // 3. AMBIL EKSTENSI FOTO DARI DATABASE
     $query_select = "SELECT foto_extension FROM dosen WHERE npk = ?";
     $stmt_select = $mysqli->prepare($query_select);
     $stmt_select->bind_param('s', $npk_to_delete);
@@ -19,7 +16,6 @@ if (isset($_GET['npk'])) {
     if ($data = $result->fetch_assoc()) {
         $foto_extension = $data['foto_extension'];
         
-        // 4. HAPUS FILE FOTO DARI FOLDER
         if (!empty($foto_extension)) {
             $nama_file_foto = $npk_to_delete . '.' . $foto_extension;
             $path_to_file = "../../uploads/dosen/" . $nama_file_foto;
@@ -31,7 +27,6 @@ if (isset($_GET['npk'])) {
     }
     $stmt_select->close();
 
-    // 5. HAPUS DATA DARI DATABASE
     $query_delete = "DELETE FROM dosen WHERE npk = ?";
     $stmt_delete = $mysqli->prepare($query_delete);
     $stmt_delete->bind_param('s', $npk_to_delete);

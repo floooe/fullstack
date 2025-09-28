@@ -1,21 +1,17 @@
 <?php
-// 1. KONEKSI DATABASE
 $mysqli = new mysqli("localhost", 'root', '', 'fullstack');
 if ($mysqli->connect_errno) {
     die("Koneksi Gagal: " . $mysqli->connect_error);
 }
 
-// 2. LOGIKA PAGINATION
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-// Hitung total data menggunakan kolom 'npk'
 $totalResult = $mysqli->query("SELECT COUNT(npk) AS total FROM dosen");
 $totalData = $totalResult->fetch_assoc()['total'];
 $totalPage = ceil($totalData / $limit);
 
-// 3. AMBIL DATA DARI DATABASE
 $sql = "SELECT npk, nama, foto_extension FROM dosen ORDER BY npk DESC LIMIT ? OFFSET ?";
 $stmt = $mysqli->prepare($sql);
 $stmt->bind_param('ii', $limit, $offset);
