@@ -13,15 +13,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     $nama_foto = $foto_lama;
 
-    if ($_FILES['foto']['name']) {
-        if (file_exists("../uploads/mahasiswa/" . $foto_lama)) {
+    //jika ada foto baru diupload
+    if (!empty($_FILES['foto']['name'])) {
+        //hapus foto lama kalau ada
+        if (!empty($foto_lama) && file_exists("../uploads/mahasiswa/" . $foto_lama)) {
             unlink("../uploads/mahasiswa/" . $foto_lama);
         }
-        
-        $foto = $_FILES['foto'];
-        $nama_foto = $nrp . '.' . pathinfo($foto['name'], PATHINFO_EXTENSION);
+
+        //simpan foto baru
+        $ext = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
+        $nama_foto = $nrp . '.' . $ext; // nama file = nrp.ext
         $lokasi_upload = "../uploads/mahasiswa/" . $nama_foto;
-        move_uploaded_file($foto['tmp_name'], $lokasi_upload);
+        move_uploaded_file($_FILES['foto']['tmp_name'], $lokasi_upload);
     }
 
     $query_update = "UPDATE mahasiswa SET nrp='$nrp', nama_mahasiswa='$nama', jurusan='$jurusan', foto='$nama_foto' WHERE id=$id";
