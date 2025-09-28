@@ -1,37 +1,71 @@
 <?php
-require '../koneksi.php';
-$id = $_GET['id'];
-$query = "SELECT * FROM dosen WHERE id=$id";
-$result = mysqli_query($koneksi, $query);
-$data = mysqli_fetch_assoc($result);
+// 1. KONEKSI DATABASE
+$mysqli = new mysqli("localhost", 'root', '', 'fullstack');
+if ($mysqli->connect_errno) {
+    die("Koneksi Gagal: " . $mysqli->connect_error);
+}
 
+// 2. AMBIL NPK ASLI DARI URL
+if (!isset($_GET['npk'])) {
+    die("Error: NPK dosen tidak ditemukan.");
+}
+$npk_asli = $_GET['npk'];
+
+// 3. PROSES UPDATE JIKA FORM DISUBMIT
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $npk = $_POST['npk'];
-    $nama = $_POST['nama_dosen'];
-    $email = $_POST['email'];
-    $foto_lama = $_POST['foto_lama'];
+    $npk_baru = $_POST['npk'];
+    $nama_baru = $_POST['nama'];
+    $ext_foto_lama = $_POST['ext_foto_lama'];
     
-    $nama_foto = $foto_lama;
+    $ext_foto_final = $ext_foto_lama;
 
-    if ($_FILES['foto']['name']) {
-        if (file_exists("../uploads/dosen/" . $foto_lama)) {
-            unlink("../uploads/dosen/" . $foto_lama);
+    // 4. LOGIKA JIKA ADA FOTO BARU DIUPLOAD
+    if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+        // Hapus foto lama
+        if (!empty($ext_foto_lama)) {
+            $file_foto_lama = "../../uploads/dosen/" . $npk_asli . '.' . $ext_foto_lama;
+            if (file_exists($file_foto_lama)) {
+                unlink($file_foto_lama);
+            }
         }
+
+        // Proses foto baru
+        $foto_baru = $_FILES['foto'];
+        $ext_foto_final = pathinfo($foto_baru['name'], PATHINFO_EXTENSION);
+        $nama_file_baru = $npk_baru . '.' . $ext_foto_final;
+        $lokasi_upload = "../../uploads/dosen/" . $nama_file_baru;
         
-        $foto = $_FILES['foto'];
-        $nama_foto = $npk . '.' . pathinfo($foto['name'], PATHINFO_EXTENSION);
-        $lokasi_upload = "../uploads/dosen/" . $nama_foto;
-        move_uploaded_file($foto['tmp_name'], $lokasi_upload);
+        if (!move_uploaded_file($foto_baru['tmp_name'], $lokasi_upload)) {
+            die("Gagal Upload Foto Baru.");
+        }
     }
 
-    $query_update = "UPDATE dosen SET npk='$npk', nama_dosen='$nama', email='$email', foto='$nama_foto' WHERE id=$id";
-    if(mysqli_query($koneksi, $query_update)) {
+    // 5. UPDATE DATA KE DATABASE
+    $query = "UPDATE dosen SET npk = ?, nama = ?, foto_extension = ? WHERE npk = ?";
+    $stmt = $mysqli->prepare($query);
+    $stmt->bind_param('ssss', $npk_baru, $nama_baru, $ext_foto_final, $npk_asli);
+
+    if ($stmt->execute()) {
         header("Location: index.php");
         exit;
     } else {
-        echo "Error: " . mysqli_error($koneksi);
+        die("DATABASE ERROR: " . $stmt->error);
     }
+    $stmt->close();
 }
+
+// 6. AMBIL DATA SAAT INI UNTUK DITAMPILKAN DI FORM
+$query = "SELECT npk, nama, foto_extension FROM dosen WHERE npk = ?";
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param('s', $npk_asli);
+$stmt->execute();
+$result = $stmt->get_result();
+if ($result->num_rows === 0) {
+    die("Data dosen dengan NPK tersebut tidak ditemukan.");
+}
+$data = $result->fetch_assoc();
+$stmt->close();
+$mysqli->close();
 ?>
 
 <!DOCTYPE html>
@@ -41,15 +75,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
     <h2>Edit Data Dosen</h2>
-    <form action="edit.php?id=<?= $id; ?>" method="POST" enctype="multipart/form-data">
+    
+    <form action="edit.php?npk=<?= htmlspecialchars($data['npk']); ?>" method="POST" enctype="multipart/form-data">
         NPK: <input type="text" name="npk" value="<?= htmlspecialchars($data['npk']); ?>" required><br><br>
-        Nama Dosen: <input type="text" name="nama_dosen" value="<?= htmlspecialchars($data['nama_dosen']); ?>" required><br><br>
-        Email: <input type="email" name="email" value="<?= htmlspecialchars($data['email']); ?>" required><br><br>
-        Foto Saat Ini: <br>
-        <img src="../uploads/dosen/<?= htmlspecialchars($data['foto']); ?>" width="100"><br>
-        Ganti Foto (kosongkan jika tidak ingin ganti): <input type="file" name="foto"><br><br>
-        <input type="hidden" name="foto_lama" value="<?= htmlspecialchars($data['foto']); ?>">
-        <button type="submit">Update</button>
+        Nama: <input type="text" name="nama" value="<?= htmlspecialchars($data['nama']); ?>" required><br><br>
+        
+        Foto Saat Ini:<br>
+        <?php if (!empty($data['foto_extension'])): ?>
+            <img src="../uploads/dosen/<?= htmlspecialchars($data['npk']) . '.' . htmlspecialchars($data['foto_extension']); ?>" height="100">
+        <?php else: ?>
+            <span>Tidak ada foto</span>
+        <?php endif; ?>
+        <br><br>
+        
+        Ganti Foto (kosongkan jika tidak ingin diubah):<br>
+        <input type="file" name="foto"><br><br>
+        
+        <input type="hidden" name="ext_foto_lama" value="<?= htmlspecialchars($data['foto_extension']); ?>">
+        
+        <button type="submit">Update Data</button>
     </form>
 </body>
 </html>
