@@ -61,13 +61,10 @@ $mysqli->close();
         <form action="tambah.php" method="POST" enctype="multipart/form-data">
             <label for="npk">NPK</label>
             <input type="text" id="npk" name="npk" required><br>
-
             <label for="nama">Nama</label>
             <input type="text" id="nama" name="nama" required><br>
-
             <label for="foto">Foto</label>
             <input type="file" id="foto" name="foto"><br>
-
             <button type="submit">💾 Simpan</button>
         </form>
 
