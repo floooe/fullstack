@@ -61,31 +61,109 @@ $mysqli->close();
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
     <title>Edit Dosen</title>
 </head>
 <body>
-    <h2>Edit Data Dosen</h2>
-    
-    <form action="edit.php?npk=<?= htmlspecialchars($data['npk']); ?>" method="POST" enctype="multipart/form-data">
-        NPK: <input type="text" name="npk" value="<?= htmlspecialchars($data['npk']); ?>" required><br><br>
-        Nama: <input type="text" name="nama" value="<?= htmlspecialchars($data['nama']); ?>" required><br><br>
+    <div class="container">
+        <h2>Edit Data Dosen</h2>
         
-        Foto Saat Ini:<br>
-        <?php if (!empty($data['foto_extension'])): ?>
-            <img src="../uploads/dosen/<?= htmlspecialchars($data['npk']) . '.' . htmlspecialchars($data['foto_extension']); ?>" height="100">
-        <?php else: ?>
-            <span>Tidak ada foto</span>
-        <?php endif; ?>
-        <br><br>
-        
-        Ganti Foto (kosongkan jika tidak ingin diubah):<br>
-        <input type="file" name="foto"><br><br>
-        
-        <input type="hidden" name="ext_foto_lama" value="<?= htmlspecialchars($data['foto_extension']); ?>">
-        
-        <button type="submit">Update Data</button>
-    </form>
+        <form action="edit.php?npk=<?= htmlspecialchars($data['npk']); ?>" method="POST" enctype="multipart/form-data">
+            <label for="npk">NPK</label>
+            <input type="text" id="npk" name="npk" value="<?= htmlspecialchars($data['npk']); ?>" required>
+
+            <label for="nama">Nama</label>
+            <input type="text" id="nama" name="nama" value="<?= htmlspecialchars($data['nama']); ?>" required>
+
+            <label>Foto Saat Ini</label><br>
+            <?php if (!empty($data['foto_extension'])): ?>
+                <img src="../uploads/dosen/<?= htmlspecialchars($data['npk']) . '.' . htmlspecialchars($data['foto_extension']); ?>" class="thumb">
+            <?php else: ?>
+                <span class="no-photo">Tidak ada foto</span>
+            <?php endif; ?>
+            <br><br>
+
+            <label for="foto">Ganti Foto (opsional)</label>
+            <input type="file" id="foto" name="foto">
+
+            <input type="hidden" name="ext_foto_lama" value="<?= htmlspecialchars($data['foto_extension']); ?>">
+
+            <button type="submit">🔄 Update Data</button>
+        </form>
+
+        <a href="index.php" class="back-link">← Kembali ke Daftar Dosen</a>
+    </div>
+
+    <!-- CSS di bawah -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            padding: 4px;
+        }
+
+        .no-photo {
+            display: inline-block;
+            padding: 8px 12px;
+            background: #eee;
+            color: #666;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s ease-in-out;
+        }
+
+
+    </style>
 </body>
 </html>
