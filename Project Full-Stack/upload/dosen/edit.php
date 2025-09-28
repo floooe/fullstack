@@ -95,8 +95,6 @@ $mysqli->close();
 
         <a href="index.php" class="back-link">← Kembali ke Daftar Dosen</a>
     </div>
-
-    <!-- CSS di bawah -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -104,7 +102,6 @@ $mysqli->close();
             margin: 0;
             padding: 20px;
         }
-
         .container {
             max-width: 500px;
             margin: 40px auto;
@@ -113,34 +110,17 @@ $mysqli->close();
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-
         h2 {
             text-align: center;
             margin-bottom: 25px;
             color: #333;
         }
-
         label {
             display: block;
             margin-bottom: 6px;
             font-weight: bold;
             color: #444;
         }
-
-        input[type="text"],
-        input[type="file"] {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            margin-bottom: 18px;
-            font-size: 14px;
-        }
-
-        input[type="file"] {
-            padding: 4px;
-        }
-
         .no-photo {
             display: inline-block;
             padding: 8px 12px;
@@ -149,7 +129,6 @@ $mysqli->close();
             border-radius: 4px;
             font-size: 13px;
         }
-
         button {
             display: block;
             width: 100%;
@@ -162,8 +141,6 @@ $mysqli->close();
             cursor: pointer;
             transition: background 0.2s ease-in-out;
         }
-
-
     </style>
 </body>
 </html>
