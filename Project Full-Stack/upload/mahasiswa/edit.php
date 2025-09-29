@@ -64,6 +64,45 @@ $mysqli->close();
 <html>
 <head>
     <title>Edit Mahasiswa</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: lightgray;
+            margin: 0;
+            padding: 20px;
+        }
+        h2 {
+            text-align: center;
+            color: darkblue;
+            margin-bottom: 20px;
+        }
+        form {
+            max-width: 400px;
+            margin: auto;
+            background-color: white;
+            padding: 20px;
+            border: 2px solid lightblue;
+            border-radius: 8px;
+        }
+        label {
+            font-weight: bold;
+            color: black;
+        }
+        button {
+            background-color: green;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: darkgreen;
+        }
+        span {
+            color: red;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
     <h2>Edit Data Mahasiswa</h2>
