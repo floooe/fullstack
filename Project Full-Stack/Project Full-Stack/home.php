@@ -1,65 +1,28 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <title>Dashboard Admin</title>
-  <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      margin: 0;
-      background-color: lightblue; 
-      text-align: center; 
-    }
-    h2 { 
-      margin-top: 100px; 
-      margin-bottom: 10px; 
-      color: black; 
-    }
-    p {
-      margin-bottom: 20px;
-      color: gray;
-    }
-    .menu { 
-      margin-top: 20px; 
-    }
-    .menu a {
-      display: inline-block;
-      margin: 10px;
-      padding: 12px 24px;
-      background: blue; 
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      transition: background 0.3s;
-      font-weight: bold;
-    }
-    .menu a:hover {
-      background: navy; 
-    }
-  </style>
-</head>
-<body>
-
-<h2>Dashboard Admin</h2>
-<p>Silakan pilih menu untuk mengelola data:</p>
-
-<div class="menu">
-  <a href="Project Full-Stack/upload/dosen/index.php">Kelola Data Dosen</a>
-  <a href="Project Full-Stack/upload/mahasiswa/index.php">Kelola Data Mahasiswa</a>
-</div>
-
-</body>
-</html>
 <?php
 session_start();
 if (!isset($_SESSION['username'])) {
-    header("Location: ../index.php");
+    header("Location: index.php");
     exit;
 }
 ?>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Home</title>
+    <link rel="stylesheet" href="asset/style.css">
+</head>
+<body>
+    <h2>Selamat datang, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
+    <p>Level: <?php echo htmlspecialchars($_SESSION['level']); ?></p>
 
-<h2>Selamat datang, <?php echo $_SESSION['username']; ?></h2>
-<p>Level: <?php echo $_SESSION['level']; ?></p>
+    <a href="change_password.php">Ubah Password</a> |
+    <a href="proses/logout.php">Logout</a>
 
-<a href="change_password.php">Ganti Password</a> |
-<a href="logout.php">Logout</a>
+    <?php if ($_SESSION['level'] == 'admin') { ?>
+        <hr>
+        <a href="upload/dosen/index.php">Kelola Dosen</a> |
+        <a href="upload/mahasiswa/index.php">Kelola Mahasiswa</a>
+    <?php } ?>
+</body>
+</html>

@@ -1,17 +1,15 @@
 <?php
 session_start();
 if (!isset($_SESSION['username'])) {
-    header("Location: ../index.php");
+    header("Location: index.php");
     exit;
 }
 ?>
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ubah Password</title>
+    <link rel="stylesheet" href="asset/style.css">
 </head>
 <body>
     <h2>Ubah Password</h2>

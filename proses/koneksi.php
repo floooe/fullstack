@@ -1,14 +1,13 @@
 <?php
-$host = "localhost";
-$user = "root"; 
-$pass = "";     
-$db   = "fullstack"; 
+$server = "localhost";
+$user = "root";
+$pass = "";
+$db = "fullstack";
 
-$koneksi = mysqli_connect($host, $user, $pass, $db);
+// koneksi ke database
+$conn = mysqli_connect($server, $user, $pass, $db);
 
-if (!$koneksi) {
+if (!$conn) {
     die("Koneksi gagal: " . mysqli_connect_error());
 }
-
-mysqli_set_charset($koneksi, "utf8");
 ?>

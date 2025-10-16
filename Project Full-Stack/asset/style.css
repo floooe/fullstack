@@ -1,151 +1,38 @@
-* {
-    box-sizing: border-box;
-}
-
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f7f9;
-    color: #444;
-    margin: 0;
-    padding: 2rem;
-}
-
-.container {
-    max-width: 1000px;
-    margin: 0 auto;
-    background-color: #ffffff;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+  font-family: Arial;
+  margin: 30px;
 }
 
 h2 {
-    color: #333;
-    margin-top: 0;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 10px;
-    margin-bottom: 1.5rem;
+  color: #333;
 }
 
-.btn {
-    background-color: #007bff;
-    color: white !important;
-    padding: 12px 22px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
-    margin-bottom: 1.5rem;
+a {
+  color: blue;
+  text-decoration: none;
 }
 
-.btn:hover {
-    background-color: #0056b3;
+a:hover {
+  text-decoration: underline;
 }
 
 table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+  border-collapse: collapse;
+  width: 80%;
+  margin-top: 20px;
 }
 
 th, td {
-    padding: 12px 15px;
-    border: 1px solid #e1e1e1;
-    text-align: left;
-    vertical-align: middle;
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
 }
 
-thead th {
-    background-color: #343a40;
-    color: white;
-    font-weight: 600;
-}
-
-tbody tr:nth-child(even) {
-    background-color: #f8f9fa;
-}
-
-tbody tr:hover {
-    background-color: #e9ecef;
-}
-
-td img {
-    height: 60px;
-    width: 60px;
-    object-fit: cover;
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-td .aksi a {
-    color: #007bff;
-    text-decoration: none;
-    margin-right: 10px;
-    font-weight: 500;
-}
-
-td .aksi a:hover {
-    text-decoration: underline;
-}
-
-td .aksi a.hapus {
-    color: #dc3545;
-}
-
-form {
-    margin-top: 20px;
-}
-
-form input[type="text"],
-form input[type="file"],
-form select {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-}
-
-form button {
-    background-color: #28a745;
-    color: white;
-    padding: 12px 25px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
-}
-
-form button:hover {
-    background-color: #218838;
-}
-
-/* Kontrol Halaman */
-.page-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 20px;
-    flex-wrap: wrap;
-}
-
-.pagination a, .pagination b {
-    display: inline-block;
-    padding: 8px 14px;
-    border: 1px solid #ddd;
-    margin: 0 3px;
-    text-decoration: none;
-    color: #007bff;
-    border-radius: 4px;
-}
-
-.pagination b {
-    background-color: #007bff;
-    color: white;
-    border-color: #007bff;
+.btn-add {
+  display: inline-block;
+  background: green;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  text-decoration: none;
 }
