@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $foto_extension = null;
     
-    if (isset($_FILES['foto']) && $_FILES['foto']['error'] ==   = UPLOAD_ERR_OK) {
+    if (isset($_FILES['foto']) && $_FILES['foto']['error'] == UPLOAD_ERR_OK) {
         $foto = $_FILES['foto'];
         $foto_extension = pathinfo($foto['name'], PATHINFO_EXTENSION);
         $nama_file_baru = $nrp . '.' . $foto_extension;
