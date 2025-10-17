@@ -92,7 +92,7 @@ $mysqli->close();
             background-color: green;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 10px 15px; 
             border-radius: 4px;
         }
         button:hover {

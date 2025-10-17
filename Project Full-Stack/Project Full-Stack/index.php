@@ -1,14 +1,15 @@
 <?php
 session_start();
-include 'proses/koneksi.php';
+include '../../proses/koneksi.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
-
+    
     // Ambil data akun berdasarkan username
     $sql = "SELECT * FROM akun WHERE username='$username' AND password=MD5('$password')";
     $result = mysqli_query($conn, $sql);
+
 
     if (mysqli_num_rows($result) > 0) {
         $data = mysqli_fetch_assoc($result);
