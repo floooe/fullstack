@@ -1,13 +1,13 @@
 <?php
-include "../../proses/koneksi.php";
+include "../../../proses/koneksi.php";
 session_start();
 
 $limit = 5;
 $page = isset($_GET['page']) ? $_GET['page'] : 1;
 $start = ($page - 1) * $limit;
 
-$q = mysqli_query($koneksi, "SELECT * FROM dosen LIMIT $start, $limit");
-$total = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM dosen"));
+$q = mysqli_query($conn, "SELECT * FROM dosen LIMIT $start, $limit");
+$total = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM dosen"));
 $pages = ceil($total / $limit);
 ?>
 <!DOCTYPE html>

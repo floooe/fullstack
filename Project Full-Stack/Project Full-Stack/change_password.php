@@ -9,7 +9,7 @@ if (!isset($_SESSION['username'])) {
 <html>
 <head>
     <title>Ubah Password</title>
-    <link rel="stylesheet" href="asset/style.css">
+    <link rel="stylesheet" href="../asset/change_password.css">
 </head>
 <body>
     <h2>Ubah Password</h2>
