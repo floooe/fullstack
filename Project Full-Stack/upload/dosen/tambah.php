@@ -1,6 +1,6 @@
-<?
-include "../../proses/koneksi.php";
-move_uploaded_file($_FILES['foto']['tmp_name'], "../../uploads/dosen/" . $nama_file); 
+<?php
+include "../../../proses/koneksi.php";
+//move_uploaded_file($_FILES['foto']['tmp_name'], "../../uploads/dosen/" . $nama_file); 
 $mysqli = new mysqli("localhost", 'root', '', 'fullstack');
 if ($mysqli->connect_errno) {
     die("Koneksi Gagal: " . $mysqli->connect_error);
@@ -84,7 +84,7 @@ $mysqli->close();
             max-width: 500px;
             margin: 40px auto;
             padding: 25px;
-            background: while;
+            background-color: white;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
@@ -103,8 +103,8 @@ $mysqli->close();
             display: block;
             width: 100%;
             padding: 10px;
-            background: light blue;
-            color: solid white;
+            background-color: light blue;
+            color: white;
             border: none;
             border-radius: 5px;
             font-size: 15px;
@@ -112,7 +112,7 @@ $mysqli->close();
             transition: background 0.2s ease-in-out;
         }
         button:hover{
-            background: dark blue;
+            background-color: dark blue;
         }
         .back-link {
             display: inline-block;
