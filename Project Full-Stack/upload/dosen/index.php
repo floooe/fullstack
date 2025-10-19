@@ -25,18 +25,25 @@ $pages = ceil($total / $limit);
         <?php $no = $start + 1; while ($data = mysqli_fetch_array($q)) { ?>
         <tr>
             <td><?= $no++; ?></td>
-            <td><?= $data['npk']; ?></td>
-            <td><?= $data['nama']; ?></td>
-            <td><img src="../../uploads/dosen/<?= $data['foto']; ?>" width="60"></td>
+            <td><?= htmlspecialchars($data['npk']); ?></td>
+            <td><?= htmlspecialchars($data['nama']); ?></td>
             <td>
-                <a href="edit.php?npk=<?= $data['npk']; ?>">Edit</a> | 
-                <a href="hapus.php?npk=<?= $data['npk']; ?>">Hapus</a>
+                <?php if (!empty($data['foto'])): ?>
+                    <img src="../uploads/dosen/<?= htmlspecialchars($data['foto']); ?>" width="60" alt="Foto Dosen">
+                <?php else: ?>
+                    <span>Tidak ada foto</span>
+                <?php endif; ?>
+            </td>
+            <td>
+                <a href="edit.php?npk=<?= urlencode($data['npk']); ?>">Edit</a> | 
+                <a href="hapus.php?npk=<?= urlencode($data['npk']); ?>">Hapus</a>
             </td>
         </tr>
         <?php } ?>
     </table>
+
     <div class="pagination">
-        <?php for ($i=1; $i<=$pages; $i++) { ?>
+        <?php for ($i = 1; $i <= $pages; $i++) { ?>
             <a href="?page=<?= $i; ?>"><?= $i; ?></a>
         <?php } ?>
     </div>
