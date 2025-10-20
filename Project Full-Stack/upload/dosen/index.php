@@ -20,23 +20,28 @@ $pages = ceil($total / $limit);
     <h2>Data Dosen</h2>
     <a href="tambah.php" class="btn-add">+ Tambah Dosen</a> |
     <a href="../../home.php">Kembali</a>
+
     <table border="1">
         <tr><th>No</th><th>NPK</th><th>Nama</th><th>Foto</th><th>Aksi</th></tr>
-        <?php $no = $start + 1; while ($data = mysqli_fetch_array($q)) { ?>
+        <?php 
+        $no = $start + 1; 
+        while ($data = mysqli_fetch_array($q)) { ?>
         <tr>
             <td><?= $no++; ?></td>
             <td><?= htmlspecialchars($data['npk']); ?></td>
             <td><?= htmlspecialchars($data['nama']); ?></td>
             <td>
-                <?php if (!empty($data['foto'])): ?>
-                    <img src="../uploads/dosen/<?= htmlspecialchars($data['foto']); ?>" width="60" alt="Foto Dosen">
+                <?php if (!empty($data['foto_extension'])): 
+                    $nama_file = htmlspecialchars($data['npk']) . '.' . htmlspecialchars($data['foto_extension']);
+                ?>
+                    <img src="../../uploads/dosen/<?= $nama_file; ?>" width="75" alt="Foto Dosen">
                 <?php else: ?>
                     <span>Tidak ada foto</span>
                 <?php endif; ?>
             </td>
             <td>
                 <a href="edit.php?npk=<?= urlencode($data['npk']); ?>">Edit</a> | 
-                <a href="hapus.php?npk=<?= urlencode($data['npk']); ?>">Hapus</a>
+                <a href="hapus.php?npk=<?= urlencode($data['npk']); ?>" onclick="return confirm('Yakin ingin menghapus data ini?');">Hapus</a>
             </td>
         </tr>
         <?php } ?>

@@ -20,23 +20,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     $check_stmt->close();
 
+    //default = null
     $foto_extension = null;
     
+    //proses up foto
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
         $foto = $_FILES['foto'];
         $foto_extension = pathinfo($foto['name'], PATHINFO_EXTENSION);
         $nama_file_baru = $npk . '.' . $foto_extension;
-        $lokasi_upload = "../../../uploads/dosen/" . $nama_file_baru;
+        $lokasi_upload = "../../uploads/dosen/" . $nama_file_baru;
 
         if (!move_uploaded_file($foto['tmp_name'], $lokasi_upload)) {
             die("GAGAL UPLOAD FILE: Pastikan folder 'uploads/dosen' ada dan memiliki izin tulis.");
         }
     }
 
-    $foto_nama = isset($nama_file_baru) ? $nama_file_baru : null;
-    $query = "INSERT INTO dosen (npk, nama, foto) VALUES (?, ?, ?)";
+    //simpan data dosen ke db
+    // $foto_nama = isset($nama_file_baru) ? $nama_file_baru : null;
+    $query = "INSERT INTO dosen (npk, nama, foto_extension) VALUES (?, ?, ?)";
     $stmt = $mysqli->prepare($query);
-    $stmt->bind_param('sss', $npk, $nama, $foto_nama);
+    $stmt->bind_param('sss', $npk, $nama, $foto_extension);
 
     
     if ($stmt->execute()) {
