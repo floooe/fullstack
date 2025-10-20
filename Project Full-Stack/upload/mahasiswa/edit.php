@@ -9,13 +9,29 @@ if (!isset($_GET['nrp'])) {
 }
 $nrp_asli = $_GET['nrp'];
 
+//ambil data
+$query = "SELECT nrp, nama, gender, tanggal_lahir, angkatan, foto_extention FROM mahasiswa WHERE nrp = ?";
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param('s', $nrp_asli);
+$stmt->execute();
+$result = $stmt->get_result();
+if ($result->num_rows === 0) {
+    die("Data mahasiswa dengan NRP tersebut tidak ditemukan.");
+}
+$data = $result->fetch_assoc();
+$stmt->close();
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nrp_baru = $_POST['nrp'];
     $nama_baru = $_POST['nama'];
+    $gender_baru = $_POST['gender'];
+    $tanggal_lahir_baru = $_POST['tanggal_lahir'];
+    $angkatan_baru = $_POST['angkatan'];
     $ext_foto_lama = $_POST['ext_foto_lama']; 
     
     $ext_foto_final = $ext_foto_lama;
 
+    // Proses upload foto baru
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
         if (!empty($ext_foto_lama)) {
             $file_foto_lama = "../../uploads/mahasiswa/" . $nrp_asli . '.' . $ext_foto_lama;
@@ -34,9 +50,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    $query = "UPDATE mahasiswa SET nrp = ?, nama = ?, foto_extention = ? WHERE nrp = ?";
+    //update data mahasiswa
+    $query = "UPDATE mahasiswa 
+              SET nrp = ?, nama = ?, gender = ?, tanggal_lahir = ?, angkatan = ?, foto_extention = ? 
+              WHERE nrp = ?";
     $stmt = $mysqli->prepare($query);
-    $stmt->bind_param('ssss', $nrp_baru, $nama_baru, $ext_foto_final, $nrp_asli);
+    $stmt->bind_param('sssssss', $nrp_baru, $nama_baru, $gender_baru, $tanggal_lahir_baru, $angkatan_baru, $ext_foto_final, $nrp_asli);
 
     if ($stmt->execute()) {
         header("Location: index.php");
@@ -46,17 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     $stmt->close();
 }
-
-$query = "SELECT nrp, nama, foto_extention FROM mahasiswa WHERE nrp = ?";
-$stmt = $mysqli->prepare($query);
-$stmt->bind_param('s', $nrp_asli);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($result->num_rows === 0) {
-    die("Data mahasiswa dengan NRP tersebut tidak ditemukan.");
-}
-$data = $result->fetch_assoc();
-$stmt->close();
 $mysqli->close();
 ?>
 
@@ -105,26 +113,47 @@ $mysqli->close();
     </style>
 </head>
 <body>
+    <div class="container">
     <h2>Edit Data Mahasiswa</h2>
-    
+
     <form action="edit.php?nrp=<?= htmlspecialchars($data['nrp']); ?>" method="POST" enctype="multipart/form-data">
-        NRP: <input type="text" name="nrp" value="<?= htmlspecialchars($data['nrp']); ?>" required><br><br>
-        Nama: <input type="text" name="nama" value="<?= htmlspecialchars($data['nama']); ?>" required><br><br>
-        
-        Foto Saat Ini:<br>
+        <label for="nrp">NRP:</label><br>
+        <input type="text" id="nrp" name="nrp" value="<?= htmlspecialchars($data['nrp']); ?>" required><br><br>
+
+        <label for="nama">Nama:</label><br>
+        <input type="text" id="nama" name="nama" value="<?= htmlspecialchars($data['nama']); ?>" required><br><br>
+
+        <label for="gender">Jenis Kelamin:</label><br>
+        <select id="gender" name="gender" required>
+            <option value="">-- Pilih Gender --</option>
+            <option value="Pria" <?= $data['gender'] == 'Pria' ? 'selected' : '' ?>>Pria</option>
+            <option value="Wanita" <?= $data['gender'] == 'Wanita' ? 'selected' : '' ?>>Wanita</option>
+        </select><br><br>
+
+        <label for="tanggal_lahir">Tanggal Lahir:</label><br>
+        <input type="date" id="tanggal_lahir" name="tanggal_lahir" value="<?= htmlspecialchars($data['tanggal_lahir']); ?>"><br><br>
+
+        <label for="angkatan">Angkatan:</label><br>
+        <input type="text" id="angkatan" name="angkatan" value="<?= htmlspecialchars($data['angkatan']); ?>" placeholder="contoh: 2022"><br><br>
+
+        <label>Foto Saat Ini:</label>
         <?php if (!empty($data['foto_extention'])): ?>
-            <img src="../uploads/mahasiswa/<?= htmlspecialchars($data['nrp']) . '.' . htmlspecialchars($data['foto_extention']); ?>" height="100">
+            <div class="foto-preview">
+                <img src="../../uploads/mahasiswa/<?= htmlspecialchars($data['nrp']) . '.' . htmlspecialchars($data['foto_extention']); ?>" class="thumb" alt="Foto Mahasiswa">
+            </div>
         <?php else: ?>
-            <span>Tidak ada foto</span>
+            <div class="no-photo">Tidak ada foto</div>
         <?php endif; ?>
-        <br><br>
-        
-        Ganti Foto (kosongkan jika tidak ingin diubah):<br>
-        <input type="file" name="foto"><br><br>
-        
         <input type="hidden" name="ext_foto_lama" value="<?= htmlspecialchars($data['foto_extention']); ?>">
-        
-        <button type="submit">Update Data</button>
+
+        <label for="foto">Ganti Foto (opsional):</label>
+        <input type="file" id="foto" name="foto">
+
+        <button type="submit">🔄 Update Data</button>
     </form>
+
+    <a href="index.php" class="back-link">← Kembali ke Daftar Mahasiswa</a>
+</div>
+
 </body>
 </html>
