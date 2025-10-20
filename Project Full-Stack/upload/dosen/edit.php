@@ -73,14 +73,14 @@ $mysqli->close();
         
         <form action="edit.php?npk=<?= htmlspecialchars($data['npk']); ?>" method="POST" enctype="multipart/form-data">
             <label for="npk">NPK</label>
-            <input type="text" id="npk" name="npk" value="<?= htmlspecialchars($data['npk']); ?>" required>
+            <input type="text" id="npk" name="npk" value="<?= htmlspecialchars($data['npk']); ?>" required><br><br>
 
             <label for="nama">Nama</label>
-            <input type="text" id="nama" name="nama" value="<?= htmlspecialchars($data['nama']); ?>" required>
-
-            <label>Foto Saat Ini</label><br>
+            <input type="text" id="nama" name="nama" value="<?= htmlspecialchars($data['nama']); ?>" required><br><br>
+            
+            <label>Foto Saat Ini</label>
             <?php if (!empty($data['foto_extension'])): ?>
-                <img src="../uploads/dosen/<?= htmlspecialchars($data['npk']) . '.' . htmlspecialchars($data['foto_extension']); ?>" class="thumb">
+                <img src="../../uploads/dosen/<?= htmlspecialchars($data['npk']) . '.' . htmlspecialchars($data['foto_extension']); ?>" class="thumb">
             <?php else: ?>
                 <span class="no-photo">Tidak ada foto</span>
             <?php endif; ?>
@@ -89,9 +89,9 @@ $mysqli->close();
             <label for="foto">Ganti Foto (opsional)</label>
             <input type="file" id="foto" name="foto">
 
-            <input type="hidden" name="ext_foto_lama" value="<?= htmlspecialchars($data['foto_extension']); ?>">
+            <input type="hidden" name="ext_foto_lama" value="<?= htmlspecialchars($data['foto_extension']); ?>"><br><br>
 
-            <button type="submit">🔄 Update Data</button>
+            <button type="submit">🔄 Update Data</button><br>
         </form>
 
         <a href="index.php" class="back-link">← Kembali ke Daftar Dosen</a>

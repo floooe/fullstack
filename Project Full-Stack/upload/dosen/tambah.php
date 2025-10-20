@@ -67,11 +67,11 @@ $mysqli->close();
         
         <form action="tambah.php" method="POST" enctype="multipart/form-data">
             <label for="npk">NPK</label>
-            <input type="text" id="npk" name="npk" required><br>
+            <input type="text" id="npk" name="npk" required><br><br>
             <label for="nama">Nama</label>
-            <input type="text" id="nama" name="nama" required><br>
+            <input type="text" id="nama" name="nama" required><br><br>
             <label for="foto">Foto</label>
-            <input type="file" id="foto" name="foto"><br>
+            <input type="file" id="foto" name="foto"><br><br>
             <button type="submit">💾 Simpan</button>
         </form>
 
@@ -108,7 +108,7 @@ $mysqli->close();
             display: block;
             width: 100%;
             padding: 10px;
-            background-color: light blue;
+            background-color: blue;
             color: white;
             border: none;
             border-radius: 5px;
@@ -117,7 +117,7 @@ $mysqli->close();
             transition: background 0.2s ease-in-out;
         }
         button:hover{
-            background-color: dark blue;
+            background-color: blue;
         }
         .back-link {
             display: inline-block;
