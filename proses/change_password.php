@@ -1,6 +1,7 @@
 <?php
 session_start();
 include "koneksi.php";
+require_once __DIR__ . '/url.php';
 
 if (isset($_POST['ubah'])) {
     $baru = $_POST['baru'] ?? '';
@@ -8,8 +9,7 @@ if (isset($_POST['ubah'])) {
     $user = $_SESSION['username'] ?? '';
 
     if ($user === '') {
-        header("Location: ../Project%20Full-Stack/Project%20Full-Stack/index.php");
-        exit;
+        redirect_rel('index.php');
     }
 
     if ($baru === $ulang) {
@@ -17,11 +17,9 @@ if (isset($_POST['ubah'])) {
         $userEsc = mysqli_real_escape_string($conn, $user);
         $sql = "UPDATE akun SET password=MD5('$baruEsc') WHERE username='$userEsc'";
         mysqli_query($conn, $sql);
-        header("Location: ../Project%20Full-Stack/Project%20Full-Stack/home.php");
-        exit;
+        redirect_rel('home.php');
     } else {
-        header("Location: ../Project%20Full-Stack/Project%20Full-Stack/change_password.php");
-        exit;
+        redirect_rel('change_password.php');
     }
 }
 ?>

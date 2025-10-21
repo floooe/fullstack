@@ -1,4 +1,14 @@
 <?php
+require_once "../../../proses/url.php";
+session_start();
+if (!isset($_SESSION['username'])) {
+    header('Location: ' . url_from_app('index.php'));
+    exit;
+}
+if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
+    header('Location: ' . url_from_app('home.php'));
+    exit;
+}
 $mysqli = new mysqli("localhost", 'root', '', 'fullstack');
 if ($mysqli->connect_errno) {
     die("Koneksi Gagal: " . $mysqli->connect_error);
@@ -102,8 +112,8 @@ $result = $stmt->get_result();
 
 <h2>Daftar Mahasiswa</h2>
 <div style="text-align:left;">
-    <a href="../../Project Full-Stack/home.php">Kembali</a>
-</div>
+    <a href="<?= url_from_app('home.php') ?>">Kembali</a>
+    </div>
 
 <table>
     <tr>
@@ -132,7 +142,7 @@ $result = $stmt->get_result();
             <?php
             if (!empty($data['foto_extention'])) {
                 $nama_file_foto = htmlspecialchars($data['nrp']) . '.' . htmlspecialchars($data['foto_extention']);
-                echo "<img src='../../uploads/mahasiswa/{$nama_file_foto}' height='70'>";
+                echo "<img src='" . url_from_app('../uploads/mahasiswa/' . $nama_file_foto) . "' height='70'>";
             } else {
                 echo "-";
             }

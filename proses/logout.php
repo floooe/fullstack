@@ -1,6 +1,7 @@
 <?php
 session_start();
+require_once __DIR__ . '/url.php';
 session_destroy();
-header("Location: ../Project%20Full-Stack/Project%20Full-Stack/index.php");
+redirect_rel('index.php');
 exit;
 ?>

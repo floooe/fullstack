@@ -1,6 +1,15 @@
 <?php
 include "../../../proses/koneksi.php";
+require_once "../../../proses/url.php";
 session_start();
+if (!isset($_SESSION['username'])) {
+    header('Location: ' . url_from_app('index.php'));
+    exit;
+}
+if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
+    header('Location: ' . url_from_app('home.php'));
+    exit;
+}
 
 $limit = 5;
 $page = isset($_GET['page']) ? $_GET['page'] : 1;
@@ -14,12 +23,12 @@ $pages = ceil($total / $limit);
 <html>
 <head>
     <title>Data Dosen</title>
-    <link rel="stylesheet" href="../../asset/style.css">
+    <link rel="stylesheet" href="<?= url_from_app('../asset/style.css') ?>">
 </head>
 <body>
     <h2>Data Dosen</h2>
     <a href="tambah.php" class="btn-add">+ Tambah Dosen</a> |
-    <a href="../../Project Full-Stack/home.php">Kembali</a>
+    <a href="<?= url_from_app('home.php') ?>">Kembali</a>
 
     <table border="1">
         <tr><th>No</th><th>NPK</th><th>Nama</th><th>Foto</th><th>Aksi</th></tr>
@@ -34,7 +43,7 @@ $pages = ceil($total / $limit);
                 <?php if (!empty($data['foto_extension'])): 
                     $nama_file = htmlspecialchars($data['npk']) . '.' . htmlspecialchars($data['foto_extension']);
                 ?>
-                    <img src="../../uploads/dosen/<?= $nama_file; ?>" width="75" alt="Foto Dosen">
+                    <img src="<?= url_from_app('../uploads/dosen/' . $nama_file) ?>" width="75" alt="Foto Dosen">
                 <?php else: ?>
                     <span>Tidak ada foto</span>
                 <?php endif; ?>

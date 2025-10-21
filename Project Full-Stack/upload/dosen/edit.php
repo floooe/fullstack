@@ -145,3 +145,8 @@ $mysqli->close();
     </style>
 </body>
 </html>
+session_start();
+if (!isset($_SESSION['username']) || !isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
+    header('Location: ../../Project Full-Stack/home.php');
+    exit;
+}

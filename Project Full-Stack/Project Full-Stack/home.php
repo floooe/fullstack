@@ -23,10 +23,6 @@ if (!isset($_SESSION['username'])) {
         <hr>
         <a href="../upload/dosen/index.php">Kelola Dosen</a> |
         <a href="../upload/mahasiswa/index.php">Kelola Mahasiswa</a>
-    <?php } else { ?>
-        <hr>
-        <a href="dosen.php">Lihat Dosen</a> |
-        <a href="mahasiswa.php">Lihat Mahasiswa</a>
     <?php } ?>
 </body>
 </html>

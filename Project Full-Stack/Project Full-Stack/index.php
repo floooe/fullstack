@@ -1,6 +1,7 @@
 <?php
 session_start();
 include '../../proses/koneksi.php';
+require_once __DIR__ . '/../../proses/url.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
@@ -27,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="utf-8">
     <title>Login</title>
-    <link rel="stylesheet" href="../asset/login.css">
+    <link rel="stylesheet" href="<?= url_from_app('../asset/login.css') ?>">
 </head>
 <body>
     <div class="login-container">

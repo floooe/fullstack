@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../proses/url.php';
 
 // Clear session data
 $_SESSION = [];
@@ -12,8 +13,7 @@ if (ini_get('session.use_cookies')) {
 
 session_destroy();
 
-// Redirect back to login (same folder)
-header('Location: index.php');
+// Redirect back to login (app root)
+redirect_rel('index.php');
 exit;
 ?>
-
