@@ -102,7 +102,7 @@ $result = $stmt->get_result();
 
 <h2>Daftar Mahasiswa</h2>
 <div style="text-align:left;">
-    <a href="../../home.php">Kembali</a>
+    <a href="../../Project Full-Stack/home.php">Kembali</a>
 </div>
 
 <table>

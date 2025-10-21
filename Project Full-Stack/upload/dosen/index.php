@@ -19,7 +19,7 @@ $pages = ceil($total / $limit);
 <body>
     <h2>Data Dosen</h2>
     <a href="tambah.php" class="btn-add">+ Tambah Dosen</a> |
-    <a href="../../home.php">Kembali</a>
+    <a href="../../Project Full-Stack/home.php">Kembali</a>
 
     <table border="1">
         <tr><th>No</th><th>NPK</th><th>Nama</th><th>Foto</th><th>Aksi</th></tr>
