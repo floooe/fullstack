@@ -17,7 +17,7 @@ if (!isset($_SESSION['username'])) {
     <p>Level: <?php echo htmlspecialchars($_SESSION['level']); ?></p>
 
     <a href="change_password.php">Ubah Password</a> |
-    <a href="../proses/logout.php">Logout</a>
+    <a href="logout.php">Logout</a>
 
     <?php if ($_SESSION['level'] == 'admin') { ?>
         <hr>
