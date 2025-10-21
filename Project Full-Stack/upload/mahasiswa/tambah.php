@@ -16,6 +16,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $gender = $_POST['gender'];
     $tanggal_lahir = $_POST['tanggal_lahir'];
     $angkatan = $_POST['angkatan'];
+    $akun_username = isset($_POST['akun_username']) && $_POST['akun_username'] !== '' ? $_POST['akun_username'] : $nrp;
+    $akun_password = $_POST['akun_password'] ?? '';
+
+    if (trim($akun_password) === '') {
+        die("ERROR: Password akun harus diisi.");
+    }
 
     $check_stmt = $mysqli->prepare("SELECT nrp FROM mahasiswa WHERE nrp = ?");
     $check_stmt->bind_param('s', $nrp);
@@ -41,24 +47,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    //store ke db
-    $query = "INSERT INTO mahasiswa (nrp, nama, gender, tanggal_lahir, angkatan, foto_extention) VALUES (?, ?, ?, ?, ?, ?)";
-    $stmt = $mysqli->prepare($query);
-    if ($stmt === false) {
-        die("Gagal menyiapkan statement: " . $mysqli->error);
+    // Pastikan username akun unik
+    $check_akun = $mysqli->prepare("SELECT username FROM akun WHERE username = ?");
+    $check_akun->bind_param('s', $akun_username);
+    $check_akun->execute();
+    $check_akun->store_result();
+    if ($check_akun->num_rows > 0) {
+        if (isset($lokasi_upload) && file_exists($lokasi_upload)) {
+            @unlink($lokasi_upload);
+        }
+        die("ERROR: Username akun '{$akun_username}' sudah ada. Gunakan username lain.");
     }
+    $check_akun->close();
 
-    
-    $stmt->bind_param('ssssss', $nrp, $nama, $gender, $tanggal_lahir, $angkatan, $foto_extension);
-    
-    if ($stmt->execute()) {
+    // Transaksi: simpan mahasiswa + akun
+    $mysqli->begin_transaction();
+    try {
+        $query = "INSERT INTO mahasiswa (nrp, nama, gender, tanggal_lahir, angkatan, foto_extention) VALUES (?, ?, ?, ?, ?, ?)";
+        $stmt = $mysqli->prepare($query);
+        if ($stmt === false) { throw new Exception($mysqli->error); }
+        $stmt->bind_param('ssssss', $nrp, $nama, $gender, $tanggal_lahir, $angkatan, $foto_extension);
+        if (!$stmt->execute()) { throw new Exception($stmt->error); }
+        $stmt->close();
+
+        $queryAkun = "INSERT INTO akun (username, password, isadmin) VALUES (?, MD5(?), 0)";
+        $stmtA = $mysqli->prepare($queryAkun);
+        $stmtA->bind_param('ss', $akun_username, $akun_password);
+        if (!$stmtA->execute()) { throw new Exception($stmtA->error); }
+        $stmtA->close();
+
+        $mysqli->commit();
         header("Location: index.php");
         exit;
-    } else {
-        echo "DATABASE ERROR: " . $stmt->error;
+    } catch (Exception $e) {
+        $mysqli->rollback();
+        if (isset($lokasi_upload) && file_exists($lokasi_upload)) {
+            @unlink($lokasi_upload);
+        }
+        die("DATABASE ERROR: " . $e->getMessage());
     }
-    
-    $stmt->close();
 }
 
 $mysqli->close();
@@ -125,8 +152,17 @@ $mysqli->close();
         <label for="nrp">NRP:</label>
         <input type="text" name="nrp" id="nrp" required>
 
-        <label for="nama">Nama:</label>
-        <input type="text" name="nama" id="nama" required>
+         <label for="nama">Nama:</label>
+         <input type="text" name="nama" id="nama" required>
+ 
+         <fieldset style="margin:15px 0; padding:10px; border:1px solid #ddd;">
+             <legend>Akun Login</legend>
+             <small>Jika dikosongkan, username otomatis pakai NRP.</small><br>
+             <label for="akun_username">Username</label>
+             <input type="text" id="akun_username" name="akun_username" placeholder="default: NRP"><br><br>
+             <label for="akun_password">Password</label>
+             <input type="password" id="akun_password" name="akun_password" required>
+         </fieldset>
 
         <label for="gender">Jenis Kelamin:</label>
         <select name="gender" id="gender" required>

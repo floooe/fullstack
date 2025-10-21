@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (!isset($_SESSION['username']) || !isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
+    header('Location: ../../Project Full-Stack/home.php');
+    exit;
+}
 include "../../../proses/koneksi.php";
 //move_uploaded_file($_FILES['foto']['tmp_name'], "../../uploads/dosen/" . $nama_file); 
 $mysqli = new mysqli("localhost", 'root', '', 'fullstack');
@@ -10,6 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     $npk = $_POST['npk'];
     $nama = $_POST['nama'];
+    $akun_username = isset($_POST['akun_username']) && $_POST['akun_username'] !== '' ? $_POST['akun_username'] : $npk;
+    $akun_password = $_POST['akun_password'] ?? '';
+
+    if (trim($akun_password) === '') {
+        die("ERROR: Password akun harus diisi.");
+    }
 
     $check_stmt = $mysqli->prepare("SELECT npk FROM dosen WHERE npk = ?");
     $check_stmt->bind_param('s', $npk);
@@ -35,21 +46,44 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    //simpan data dosen ke db
-    // $foto_nama = isset($nama_file_baru) ? $nama_file_baru : null;
-    $query = "INSERT INTO dosen (npk, nama, foto_extension) VALUES (?, ?, ?)";
-    $stmt = $mysqli->prepare($query);
-    $stmt->bind_param('sss', $npk, $nama, $foto_extension);
+    // Pastikan username akun unik
+    $check_akun = $mysqli->prepare("SELECT username FROM akun WHERE username = ?");
+    $check_akun->bind_param('s', $akun_username);
+    $check_akun->execute();
+    $check_akun->store_result();
+    if ($check_akun->num_rows > 0) {
+        if (isset($lokasi_upload) && file_exists($lokasi_upload)) {
+            @unlink($lokasi_upload);
+        }
+        die("ERROR: Username akun '{$akun_username}' sudah ada. Gunakan username lain.");
+    }
+    $check_akun->close();
 
-    
-    if ($stmt->execute()) {
+    // Transaksi: simpan dosen + akun
+    $mysqli->begin_transaction();
+    try {
+        $query = "INSERT INTO dosen (npk, nama, foto_extension) VALUES (?, ?, ?)";
+        $stmt = $mysqli->prepare($query);
+        $stmt->bind_param('sss', $npk, $nama, $foto_extension);
+        if (!$stmt->execute()) { throw new Exception($stmt->error); }
+        $stmt->close();
+
+        $queryAkun = "INSERT INTO akun (username, password, isadmin) VALUES (?, MD5(?), 0)";
+        $stmtA = $mysqli->prepare($queryAkun);
+        $stmtA->bind_param('ss', $akun_username, $akun_password);
+        if (!$stmtA->execute()) { throw new Exception($stmtA->error); }
+        $stmtA->close();
+
+        $mysqli->commit();
         header("Location: index.php");
         exit;
-    } else {
-        echo "DATABASE ERROR: " . $stmt->error;
+    } catch (Exception $e) {
+        $mysqli->rollback();
+        if (isset($lokasi_upload) && file_exists($lokasi_upload)) {
+            @unlink($lokasi_upload);
+        }
+        die("DATABASE ERROR: " . $e->getMessage());
     }
-    
-    $stmt->close();
 }
 
 $mysqli->close();
@@ -70,6 +104,14 @@ $mysqli->close();
             <input type="text" id="npk" name="npk" required><br><br>
             <label for="nama">Nama</label>
             <input type="text" id="nama" name="nama" required><br><br>
+            <fieldset style="margin:15px 0; padding:10px; border:1px solid #ddd;">
+                <legend>Akun Login</legend>
+                <small>Jika dikosongkan, username otomatis pakai NPK.</small><br>
+                <label for="akun_username">Username</label>
+                <input type="text" id="akun_username" name="akun_username" placeholder="default: NPK"><br><br>
+                <label for="akun_password">Password</label>
+                <input type="password" id="akun_password" name="akun_password" required>
+            </fieldset>
             <label for="foto">Foto</label>
             <input type="file" id="foto" name="foto"><br><br>
             <button type="submit">💾 Simpan</button>
@@ -131,8 +173,3 @@ $mysqli->close();
     </style>
 </body>
 </html>
-session_start();
-if (!isset($_SESSION['username']) || !isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
-    header('Location: ../../Project Full-Stack/home.php');
-    exit;
-}
