@@ -3,15 +3,25 @@ session_start();
 include "koneksi.php";
 
 if (isset($_POST['ubah'])) {
-    $baru = $_POST['baru'];
-    $ulang = $_POST['ulang'];
-    $user = $_SESSION['username'];
+    $baru = $_POST['baru'] ?? '';
+    $ulang = $_POST['ulang'] ?? '';
+    $user = $_SESSION['username'] ?? '';
 
-    if ($baru == $ulang) {
-        mysqli_query($koneksi, "UPDATE akun SET password='$baru' WHERE username='$user'");
-        echo "<script>alert('Password berhasil diubah!');window.location='../home.php';</script>";
+    if ($user === '') {
+        header("Location: ../Project%20Full-Stack/Project%20Full-Stack/index.php");
+        exit;
+    }
+
+    if ($baru === $ulang) {
+        $baruEsc = mysqli_real_escape_string($conn, $baru);
+        $userEsc = mysqli_real_escape_string($conn, $user);
+        $sql = "UPDATE akun SET password=MD5('$baruEsc') WHERE username='$userEsc'";
+        mysqli_query($conn, $sql);
+        header("Location: ../Project%20Full-Stack/Project%20Full-Stack/home.php");
+        exit;
     } else {
-        echo "<script>alert('Konfirmasi password tidak cocok!');window.location='../change_password.php';</script>";
+        header("Location: ../Project%20Full-Stack/Project%20Full-Stack/change_password.php");
+        exit;
     }
 }
 ?>

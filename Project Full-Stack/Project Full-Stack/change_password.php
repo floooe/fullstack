@@ -13,7 +13,7 @@ if (!isset($_SESSION['username'])) {
 </head>
 <body>
     <h2>Ubah Password</h2>
-    <form action="proses/change_pass_proses.php" method="POST">
+    <form action="../../proses/change_password.php" method="POST">
         Password baru: <input type="password" name="baru" required><br>
         Ulangi password: <input type="password" name="ulang" required><br>
         <button type="submit" name="ubah">Ubah Password</button>
