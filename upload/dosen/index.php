@@ -25,9 +25,10 @@ $pages = ceil($total / $limit);
     <link rel="stylesheet" href="../../asset/style.css">
 </head>
 <body>
-    <h2>Data Dosen</h2>
-    <a href="tambah.php" class="btn-add">+ Tambah Dosen</a> |
-    <a href="../../home.php">Kembali</a>
+<h2>Data Dosen</h2>
+
+<a href="tambah.php" class="btn-add">+ Tambah Dosen</a> |
+<a href="../../home.php">Kembali</a>
 
     <table border="1">
         <tr><th>No</th><th>NPK</th><th>Nama</th><th>Foto</th><th>Aksi</th></tr>
