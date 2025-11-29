@@ -1,10 +1,10 @@
 <?php
 session_start();
 if (!isset($_SESSION['username']) || !isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
-    header('Location: ../../Project Full-Stack/home.php');
+    header('Location: ../../home.php');
     exit;
 }
-include "../../../proses/koneksi.php";
+include "../../proses/koneksi.php";
 //move_uploaded_file($_FILES['foto']['tmp_name'], "../../uploads/dosen/" . $nama_file); 
 $mysqli = new mysqli("localhost", 'root', '', 'fullstack');
 if ($mysqli->connect_errno) {

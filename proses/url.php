@@ -1,12 +1,17 @@
 <?php
 // URL helper to generate paths relative to the app root directory
-// App root (filesystem): <repo>/Project Full-Stack/Project Full-Stack
+// Detect app root as either <repo>/Project Full-Stack (preferred) or <repo> fallback
 
 function __app_root_fs() {
     static $path = null;
     if ($path === null) {
         $repoRoot = dirname(__DIR__); // <repo>
-        $path = realpath($repoRoot . DIRECTORY_SEPARATOR . 'Project Full-Stack' . DIRECTORY_SEPARATOR . 'Project Full-Stack');
+        $candidate = $repoRoot . DIRECTORY_SEPARATOR . 'Project Full-Stack';
+        if (is_dir($candidate)) {
+            $path = realpath($candidate);
+        } else {
+            $path = realpath($repoRoot);
+        }
     }
     return $path ?: '';
 }
@@ -39,7 +44,7 @@ function url_from_app($pathWithinApp) {
     $curDir = __current_dir_fs();
     $appRoot = __app_root_fs();
     if ($curDir === '' || $appRoot === '') return ltrim($pathWithinApp, '/');
-    $prefix = __relpath($curDir, $appRoot); // e.g. ../../Project Full-Stack/Project Full-Stack/
+    $prefix = __relpath($curDir, $appRoot); // e.g. ../../Project Full-Stack/
     $url = $prefix . ltrim($pathWithinApp, '/');
     return str_replace('\\', '/', $url);
 }
@@ -51,4 +56,3 @@ function redirect_rel($pathWithinApp) {
 }
 
 ?>
-

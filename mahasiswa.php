@@ -11,8 +11,7 @@ if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
     exit;
 }
 
-include '../../proses/koneksi.php';
-require_once __DIR__ . '/../../proses/url.php';
+include __DIR__ . '/proses/koneksi.php';
 
 $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 5;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
@@ -32,7 +31,7 @@ $result = mysqli_query($conn, $sql);
 <head>
     <meta charset="UTF-8">
     <title>Daftar Mahasiswa (View Only)</title>
-    <link rel="stylesheet" href="<?= url_from_app('../asset/style.css') ?>">
+    <link rel="stylesheet" href="asset/style.css">
     <style>
         .note { color: #555; font-size: 0.95em; margin-left: 10px; }
         table { width: 98%; }
@@ -42,7 +41,7 @@ $result = mysqli_query($conn, $sql);
 
 <h2>Daftar Mahasiswa</h2>
 <div style="text-align:left; margin-bottom:10px;">
-    <a href="<?= url_from_app('home.php') ?>">Kembali</a>
+    <a href="home.php">Kembali</a>
     <span class="note">(hanya bisa melihat, tanpa edit/hapus)</span>
     </div>
 
@@ -68,7 +67,7 @@ $result = mysqli_query($conn, $sql);
         <td>
             <?php if (!empty($data['foto_extention'])) { 
                 $nama_file_foto = htmlspecialchars($data['nrp']) . '.' . htmlspecialchars($data['foto_extention']);
-                echo "<img src='" . url_from_app('../uploads/mahasiswa/' . $nama_file_foto) . "' height='70' alt='Foto Mahasiswa'>";
+                echo "<img src='uploads/mahasiswa/" . $nama_file_foto . "' height='70' alt='Foto Mahasiswa'>";
             } else { echo "-"; } ?>
         </td>
     </tr>

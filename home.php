@@ -10,7 +10,7 @@ if (!isset($_SESSION['username'])) {
 <head>
     <meta charset="utf-8">
     <title>Home</title>
-    <link rel="stylesheet" href="../asset/home.css">
+    <link rel="stylesheet" href="asset/home.css">
 </head>
 <body>
     <h2>Selamat datang, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
@@ -21,8 +21,8 @@ if (!isset($_SESSION['username'])) {
 
     <?php if ($_SESSION['level'] == 'admin') { ?>
         <hr>
-        <a href="../upload/dosen/index.php">Kelola Dosen</a> |
-        <a href="../upload/mahasiswa/index.php">Kelola Mahasiswa</a>
+        <a href="upload/dosen/index.php">Kelola Dosen</a> |
+        <a href="upload/mahasiswa/index.php">Kelola Mahasiswa</a>
     <?php } ?>
 </body>
 </html>

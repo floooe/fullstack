@@ -6,7 +6,7 @@ session_start();
 <head>
     <meta charset="utf-8">
     <title>Login</title>
-    <link rel="stylesheet" href="../asset/login.css">
+    <link rel="stylesheet" href="asset/login.css">
 </head>
 <body>
     <div class="login-container">

@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['username']) || !isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
-    header('Location: ../../Project Full-Stack/home.php');
+    header('Location: ../../home.php');
     exit;
 }
 $mysqli = new mysqli("localhost", 'root', '', 'fullstack');
