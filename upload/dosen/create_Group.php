@@ -4,7 +4,8 @@ if (!isset($_SESSION['username'])) {
     header("Location: ../../index.php");
     exit;
 }
-if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
+// izinkan dosen maupun admin
+if (!isset($_SESSION['level']) || !in_array($_SESSION['level'], ['admin','dosen'])) {
     header("Location: ../../home.php");
     exit;
 }

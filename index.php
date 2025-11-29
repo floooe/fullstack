@@ -6,6 +6,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
     
+    // helper cek level user
+    function is_dosen_user($conn, $u) {
+        $uEsc = mysqli_real_escape_string($conn, $u);
+        $fields = [];
+        $colRes = mysqli_query($conn, "SHOW COLUMNS FROM dosen");
+        while ($c = mysqli_fetch_assoc($colRes)) {
+            $fields[] = $c['Field'];
+        }
+        $conds = [];
+        if (in_array('npk', $fields, true)) $conds[] = "npk='$uEsc'";
+        if (in_array('username', $fields, true)) $conds[] = "username='$uEsc'";
+        if (in_array('akun_username', $fields, true)) $conds[] = "akun_username='$uEsc'";
+        if (!$conds) return false;
+        $where = implode(' OR ', $conds);
+        $q = mysqli_query($conn, "SELECT 1 FROM dosen WHERE $where LIMIT 1");
+        return mysqli_num_rows($q) > 0;
+    }
+
+    function is_mahasiswa_user($conn, $u) {
+        $uEsc = mysqli_real_escape_string($conn, $u);
+        $fields = [];
+        $colRes = mysqli_query($conn, "SHOW COLUMNS FROM mahasiswa");
+        while ($c = mysqli_fetch_assoc($colRes)) {
+            $fields[] = $c['Field'];
+        }
+        $conds = [];
+        if (in_array('nrp', $fields, true)) $conds[] = "nrp='$uEsc'";
+        if (in_array('username', $fields, true)) $conds[] = "username='$uEsc'";
+        if (in_array('akun_username', $fields, true)) $conds[] = "akun_username='$uEsc'";
+        if (!$conds) return false;
+        $where = implode(' OR ', $conds);
+        $q = mysqli_query($conn, "SELECT 1 FROM mahasiswa WHERE $where LIMIT 1");
+        return mysqli_num_rows($q) > 0;
+    }
+
     // Ambil data akun berdasarkan username
     $sql = "SELECT * FROM akun WHERE username='$username' AND password=MD5('$password')";
     $result = mysqli_query($conn, $sql);
@@ -15,14 +50,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Set session
         $_SESSION['username'] = $data['username'];
-        $_SESSION['level'] = ($data['isadmin'] == 1) ? 'admin' : 'dosen';
-
-        // Redirect otomatis berdasarkan level
-        if ($_SESSION['level'] === 'admin') {
-            header("Location: admin/home.php");
+        if ($data['isadmin'] == 1) {
+            $_SESSION['level'] = 'admin';
         } else {
-            header("Location: upload/dosen/home.php");
+            $u = $data['username'];
+            if (is_dosen_user($conn, $u)) {
+                $_SESSION['level'] = 'dosen';
+            } elseif (is_mahasiswa_user($conn, $u)) {
+                $_SESSION['level'] = 'mahasiswa';
+            } else {
+                // fallback: anggap mahasiswa
+                $_SESSION['level'] = 'mahasiswa';
+            }
         }
+
+        // Redirect ke dashboard utama
+        header("Location: /fullstack/fullstack/home.php");
         exit;
     } else {
         $error = "Username atau password salah!";

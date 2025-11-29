@@ -62,9 +62,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Transaksi: simpan dosen + akun
     $mysqli->begin_transaction();
     try {
-        $query = "INSERT INTO dosen (npk, nama, foto_extension) VALUES (?, ?, ?)";
-        $stmt = $mysqli->prepare($query);
-        $stmt->bind_param('sss', $npk, $nama, $foto_extension);
+        // cek apakah tabel dosen punya kolom akun_username
+        $hasAkunCol = false;
+        $colRes = $mysqli->query("SHOW COLUMNS FROM dosen");
+        while ($c = $colRes->fetch_assoc()) {
+            if ($c['Field'] === 'akun_username') { $hasAkunCol = true; break; }
+        }
+        $colRes->free();
+
+        if ($hasAkunCol) {
+            $query = "INSERT INTO dosen (npk, nama, foto_extension, akun_username) VALUES (?, ?, ?, ?)";
+            $stmt = $mysqli->prepare($query);
+            $stmt->bind_param('ssss', $npk, $nama, $foto_extension, $akun_username);
+        } else {
+            $query = "INSERT INTO dosen (npk, nama, foto_extension) VALUES (?, ?, ?)";
+            $stmt = $mysqli->prepare($query);
+            $stmt->bind_param('sss', $npk, $nama, $foto_extension);
+        }
         if (!$stmt->execute()) { throw new Exception($stmt->error); }
         $stmt->close();
 

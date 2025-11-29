@@ -63,10 +63,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Transaksi: simpan mahasiswa + akun
     $mysqli->begin_transaction();
     try {
-        $query = "INSERT INTO mahasiswa (nrp, nama, gender, tanggal_lahir, angkatan, foto_extention) VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt = $mysqli->prepare($query);
-        if ($stmt === false) { throw new Exception($mysqli->error); }
-        $stmt->bind_param('ssssss', $nrp, $nama, $gender, $tanggal_lahir, $angkatan, $foto_extension);
+        // cek apakah tabel mahasiswa punya kolom akun_username
+        $hasAkunCol = false;
+        $colRes = $mysqli->query("SHOW COLUMNS FROM mahasiswa");
+        while ($c = $colRes->fetch_assoc()) {
+            if ($c['Field'] === 'akun_username') { $hasAkunCol = true; break; }
+        }
+        $colRes->free();
+
+        if ($hasAkunCol) {
+            $query = "INSERT INTO mahasiswa (nrp, nama, gender, tanggal_lahir, angkatan, foto_extention, akun_username) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $stmt = $mysqli->prepare($query);
+            if ($stmt === false) { throw new Exception($mysqli->error); }
+            $stmt->bind_param('sssssss', $nrp, $nama, $gender, $tanggal_lahir, $angkatan, $foto_extension, $akun_username);
+        } else {
+            $query = "INSERT INTO mahasiswa (nrp, nama, gender, tanggal_lahir, angkatan, foto_extention) VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt = $mysqli->prepare($query);
+            if ($stmt === false) { throw new Exception($mysqli->error); }
+            $stmt->bind_param('ssssss', $nrp, $nama, $gender, $tanggal_lahir, $angkatan, $foto_extension);
+        }
         if (!$stmt->execute()) { throw new Exception($stmt->error); }
         $stmt->close();
 

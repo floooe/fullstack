@@ -4,7 +4,8 @@ if (!isset($_SESSION['username'])) {
     header("Location: ../../index.php");
     exit;
 }
-if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
+// izinkan dosen maupun admin
+if (!isset($_SESSION['level']) || !in_array($_SESSION['level'], ['admin','dosen'])) {
     header("Location: ../../home.php");
     exit;
 }
@@ -59,6 +60,139 @@ $errors = [];
 
 $eventsTable = detect_events_table($conn);
 $eventsTableExists = $eventsTable !== null;
+$eventGroupCol = null;
+$eventScheduleCol = null;
+$eventCreatedCol = null;
+$eventTitleCol = null;
+$eventDetailCol = null;
+$eventIdCol = null;
+if ($eventsTableExists) {
+    $colsRes = mysqli_query($conn, "SHOW COLUMNS FROM {$eventsTable}");
+    $cols = [];
+    while ($c = mysqli_fetch_assoc($colsRes)) {
+        $cols[] = $c['Field'];
+    }
+    foreach (['group_id', 'id_grup', 'idgrup', 'groupid'] as $candidate) {
+        if (in_array($candidate, $cols, true)) {
+            $eventGroupCol = $candidate;
+            break;
+        }
+    }
+    if (!$eventGroupCol) {
+        foreach ($cols as $c) {
+            if (stripos($c, 'grup') !== false || stripos($c, 'group') !== false) {
+                $eventGroupCol = $c;
+                break;
+            }
+        }
+    }
+    foreach (['title', 'judul', 'nama', 'nama_event'] as $candidate) {
+        if (in_array($candidate, $cols, true)) {
+            $eventTitleCol = $candidate;
+            break;
+        }
+    }
+    foreach (['detail', 'deskripsi', 'keterangan'] as $candidate) {
+        if (in_array($candidate, $cols, true)) {
+            $eventDetailCol = $candidate;
+            break;
+        }
+    }
+    foreach (['schedule_at', 'jadwal', 'tanggal', 'waktu'] as $candidate) {
+        if (in_array($candidate, $cols, true)) {
+            $eventScheduleCol = $candidate;
+            break;
+        }
+    }
+    foreach (['created_at', 'created', 'dibuat', 'createdAt'] as $candidate) {
+        if (in_array($candidate, $cols, true)) {
+            $eventCreatedCol = $candidate;
+            break;
+        }
+    }
+    foreach (['id', 'id_event', 'idevent'] as $candidate) {
+        if (in_array($candidate, $cols, true)) {
+            $eventIdCol = $candidate;
+            break;
+        }
+    }
+    if (!$eventIdCol && !empty($cols)) {
+        $eventIdCol = $cols[0]; // fallback kolom pertama
+    }
+}
+$eventsTableReady = $eventsTableExists && $eventGroupCol && $eventTitleCol;
+$eventOrderCol = $eventScheduleCol ?: ($eventCreatedCol ?: 'id');
+
+// helper cek apakah ID grup valid untuk tabel relasi event
+function event_group_exists($conn, $eventGroupCol, $groupId) {
+    // jika kolom khas "idgrup" biasanya refer ke tabel "grup"
+    if ($eventGroupCol === 'idgrup' || $eventGroupCol === 'id_grup') {
+        $res = mysqli_query($conn, "SELECT 1 FROM grup WHERE idgrup=$groupId LIMIT 1");
+        return mysqli_num_rows($res) > 0;
+    }
+    // default cek ke tabel groups
+    $res = mysqli_query($conn, "SELECT 1 FROM groups WHERE id=$groupId LIMIT 1");
+    return mysqli_num_rows($res) > 0;
+}
+
+// pastikan baris grup ada di tabel "grup" jika FK event menunjuk ke sana
+function ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc, $groupJenis, $groupCode, $groupCreatedBy, $groupCreatedAt) {
+    if (!in_array($eventGroupCol, ['idgrup', 'id_grup'], true)) {
+        return true; // tidak butuh sinkron
+    }
+
+    // cek tabel grup ada
+    if (mysqli_num_rows(mysqli_query($conn, "SHOW TABLES LIKE 'grup'")) === 0) {
+        return false;
+    }
+
+    // sudah ada?
+    $exists = mysqli_query($conn, "SELECT 1 FROM grup WHERE idgrup=$groupId LIMIT 1");
+    if (mysqli_num_rows($exists) > 0) {
+        return true;
+    }
+
+    // deteksi kolom yang tersedia
+    $cols = [];
+    $colRes = mysqli_query($conn, "SHOW COLUMNS FROM grup");
+    while ($c = mysqli_fetch_assoc($colRes)) {
+        $cols[] = $c['Field'];
+    }
+
+    $insertCols = [];
+    $insertVals = [];
+    $insertCols[] = in_array('idgrup', $cols, true) ? 'idgrup' : $eventGroupCol;
+    $insertVals[] = (int)$groupId;
+
+    if (in_array('username_pembuat', $cols, true)) {
+        $insertCols[] = 'username_pembuat';
+        $insertVals[] = "'" . mysqli_real_escape_string($conn, $groupCreatedBy) . "'";
+    }
+    if (in_array('nama', $cols, true)) {
+        $insertCols[] = 'nama';
+        $insertVals[] = "'" . mysqli_real_escape_string($conn, $groupName) . "'";
+    }
+    if (in_array('deskripsi', $cols, true)) {
+        $insertCols[] = 'deskripsi';
+        $insertVals[] = "'" . mysqli_real_escape_string($conn, $groupDesc) . "'";
+    }
+    if (in_array('jenis', $cols, true)) {
+        $insertCols[] = 'jenis';
+        $insertVals[] = "'" . mysqli_real_escape_string($conn, ucfirst($groupJenis)) . "'";
+    }
+    if (in_array('kode_pendaftaran', $cols, true)) {
+        $insertCols[] = 'kode_pendaftaran';
+        $insertVals[] = "'" . mysqli_real_escape_string($conn, $groupCode) . "'";
+    }
+    if (in_array('tanggal_pembentukan', $cols, true)) {
+        $insertCols[] = 'tanggal_pembentukan';
+        $insertVals[] = "'" . mysqli_real_escape_string($conn, $groupCreatedAt) . "'";
+    }
+
+    $colList = implode(',', $insertCols);
+    $valList = implode(',', $insertVals);
+    return mysqli_query($conn, "INSERT INTO grup($colList) VALUES ($valList)");
+}
 
 // ACTION HANDLERS
 if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -94,20 +228,38 @@ if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    if ($eventsTableExists && $action === 'add_event') {
+    if ($eventsTableReady && $action === 'add_event') {
         $title = mysqli_real_escape_string($conn, trim($_POST['title'] ?? ''));
         $schedule = mysqli_real_escape_string($conn, trim($_POST['schedule'] ?? ''));
         $detail = mysqli_real_escape_string($conn, trim($_POST['detail'] ?? ''));
         if ($title !== '') {
-            mysqli_query($conn, "INSERT INTO {$eventsTable}(group_id, title, schedule_at, detail, created_at) VALUES ($groupId, '$title', '$schedule', '$detail', NOW())");
-            header("Location: group_detail.php?id=$groupId&msg=Event ditambahkan");
-            exit;
+            if (!event_group_exists($conn, $eventGroupCol, $groupId)) {
+                // coba sinkronkan baris di tabel grup jika diperlukan
+                if (!ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc, $groupJenis, $groupCode, $group['created_by'], $group['created_at'])) {
+                    $errors[] = "ID grup tidak ditemukan di tabel referensi event. Pastikan grup ada di tabel tujuan (mis. 'grup').";
+                }
+            }
+            if (empty($errors)) {
+                $scheduleField = $eventScheduleCol ?: 'schedule_at';
+                $detailField = $eventDetailCol ?: 'detail';
+                $columns = [$eventGroupCol, $eventTitleCol, $scheduleField, $detailField];
+                $values = ["$groupId", "'$title'", "'$schedule'", "'$detail'"];
+                if ($eventCreatedCol) {
+                    $columns[] = $eventCreatedCol;
+                    $values[] = "NOW()";
+                }
+                $colList = implode(',', $columns);
+                $valList = implode(',', $values);
+                mysqli_query($conn, "INSERT INTO {$eventsTable}({$colList}) VALUES ({$valList})");
+                header("Location: group_detail.php?id=$groupId&msg=Event ditambahkan");
+                exit;
+            }
         } else {
             $errors[] = "Judul event wajib diisi.";
         }
     }
 
-    if ($eventsTableExists && $action === 'update_event') {
+    if ($eventsTableReady && $action === 'update_event') {
         $eventId = (int)($_POST['event_id'] ?? 0);
         $title = mysqli_real_escape_string($conn, trim($_POST['title'] ?? ''));
         $schedule = mysqli_real_escape_string($conn, trim($_POST['schedule'] ?? ''));
@@ -115,9 +267,19 @@ if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($title === '') {
             $errors[] = "Judul event wajib diisi.";
         } else {
-            mysqli_query($conn, "UPDATE {$eventsTable} SET title='$title', schedule_at='$schedule', detail='$detail' WHERE id=$eventId AND group_id=$groupId");
-            header("Location: group_detail.php?id=$groupId&msg=Event diperbarui");
-            exit;
+            if (!event_group_exists($conn, $eventGroupCol, $groupId)) {
+                // coba sinkronkan baris di tabel grup jika diperlukan
+                if (!ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc, $groupJenis, $groupCode, $group['created_by'], $group['created_at'])) {
+                    $errors[] = "ID grup tidak ditemukan di tabel referensi event. Pastikan grup ada di tabel tujuan (mis. 'grup').";
+                }
+            }
+            if (empty($errors)) {
+                $scheduleField = $eventScheduleCol ?: 'schedule_at';
+                $detailField = $eventDetailCol ?: 'detail';
+                mysqli_query($conn, "UPDATE {$eventsTable} SET {$eventTitleCol}='$title', {$scheduleField}='$schedule', {$detailField}='$detail' WHERE {$eventIdCol}=$eventId AND {$eventGroupCol}=$groupId");
+                header("Location: group_detail.php?id=$groupId&msg=Event diperbarui");
+                exit;
+            }
         }
     }
 }
@@ -129,9 +291,10 @@ if ($isCreator && isset($_GET['remove_member'])) {
     exit;
 }
 
-if ($isCreator && $eventsTableExists && isset($_GET['delete_event'])) {
+if ($isCreator && $eventsTableReady && isset($_GET['delete_event'])) {
     $eid = (int)$_GET['delete_event'];
-    mysqli_query($conn, "DELETE FROM {$eventsTable} WHERE id=$eid AND group_id=$groupId");
+    $idCol = $eventIdCol ?: 'id';
+    mysqli_query($conn, "DELETE FROM {$eventsTable} WHERE {$idCol}=$eid AND {$eventGroupCol}=$groupId");
     header("Location: group_detail.php?id=$groupId&msg=Event dihapus");
     exit;
 }
@@ -189,11 +352,11 @@ $mhsList = mysqli_query($conn, $sqlMhs);
 
 $events = [];
 $editEvent = null;
-if ($eventsTableExists) {
-    $eventsRes = mysqli_query($conn, "SELECT * FROM {$eventsTable} WHERE group_id=$groupId ORDER BY schedule_at DESC");
+if ($eventsTableReady) {
+    $eventsRes = mysqli_query($conn, "SELECT * FROM {$eventsTable} WHERE {$eventGroupCol}=$groupId ORDER BY {$eventOrderCol} DESC");
     while ($ev = mysqli_fetch_assoc($eventsRes)) {
         $events[] = $ev;
-        if (isset($_GET['edit_event']) && (int)$_GET['edit_event'] === (int)$ev['id']) {
+        if ($eventIdCol && isset($_GET['edit_event']) && (int)$_GET['edit_event'] === (int)$ev[$eventIdCol]) {
             $editEvent = $ev;
         }
     }
@@ -338,7 +501,9 @@ if ($eventsTableExists) {
     <div class="section">
         <h3>Event Group</h3>
         <?php if (!$eventsTableExists) { ?>
-            <p>Tabel <code>events</code> belum tersedia. Buat tabel dengan kolom minimal: <code>id</code> (PK, auto increment), <code>group_id</code>, <code>title</code>, <code>schedule_at</code> (DATETIME), <code>detail</code>, <code>created_at</code>.</p>
+            <p>Tabel <code>events</code>/<code>event</code> belum tersedia. Buat tabel dengan kolom minimal: <code>id</code> (PK, auto increment), kolom relasi grup, kolom judul, kolom jadwal (DATETIME), kolom detail, kolom created_at.</p>
+        <?php } elseif (!$eventsTableReady) { ?>
+            <p>Tabel event ditemukan tetapi kolom wajib belum dikenali. Pastikan ada: kolom relasi grup (group_id/id_grup/dll) dan kolom judul (title/judul/nama).</p>
         <?php } else { ?>
             <?php if (empty($events)) { ?>
                 <p>Belum ada event.</p>
@@ -347,13 +512,13 @@ if ($eventsTableExists) {
                     <tr><th>Judul</th><th>Jadwal</th><th>Keterangan</th><?php if ($isCreator) { ?><th>Aksi</th><?php } ?></tr>
                     <?php foreach ($events as $ev) { ?>
                         <tr>
-                            <td><?= htmlspecialchars($ev['title']); ?></td>
-                            <td><?= htmlspecialchars($ev['schedule_at']); ?></td>
-                            <td><?= htmlspecialchars($ev['detail']); ?></td>
+                            <td><?= htmlspecialchars($ev[$eventTitleCol]); ?></td>
+                            <td><?= htmlspecialchars($eventScheduleCol && isset($ev[$eventScheduleCol]) ? $ev[$eventScheduleCol] : ($eventCreatedCol && isset($ev[$eventCreatedCol]) ? $ev[$eventCreatedCol] : '')); ?></td>
+                            <td><?= htmlspecialchars($eventDetailCol && isset($ev[$eventDetailCol]) ? $ev[$eventDetailCol] : ''); ?></td>
                             <?php if ($isCreator) { ?>
                                 <td>
-                                    <a href="group_detail.php?id=<?= $groupId; ?>&edit_event=<?= $ev['id']; ?>">Edit</a> |
-                                    <a href="group_detail.php?id=<?= $groupId; ?>&delete_event=<?= $ev['id']; ?>" onclick="return confirm('Hapus event?')">Hapus</a>
+                                    <a href="group_detail.php?id=<?= $groupId; ?>&edit_event=<?= $eventIdCol ? $ev[$eventIdCol] : ''; ?>">Edit</a> |
+                                    <a href="group_detail.php?id=<?= $groupId; ?>&delete_event=<?= $eventIdCol ? $ev[$eventIdCol] : ''; ?>" onclick="return confirm('Hapus event?')">Hapus</a>
                                 </td>
                             <?php } ?>
                         </tr>
@@ -363,22 +528,31 @@ if ($eventsTableExists) {
 
             <?php if ($isCreator) { ?>
                 <h4><?= $editEvent ? 'Edit Event' : 'Tambah Event'; ?></h4>
+                <?php
+                    $scheduleValue = '';
+                    if ($editEvent) {
+                        $raw = $eventScheduleCol && isset($editEvent[$eventScheduleCol]) ? $editEvent[$eventScheduleCol] : '';
+                        if ($raw !== '') {
+                            $scheduleValue = htmlspecialchars(str_replace(' ', 'T', substr($raw, 0, 16)));
+                        }
+                    }
+                ?>
                 <form method="post">
                     <input type="hidden" name="action" value="<?= $editEvent ? 'update_event' : 'add_event'; ?>">
                     <?php if ($editEvent) { ?>
-                        <input type="hidden" name="event_id" value="<?= $editEvent['id']; ?>">
+                        <input type="hidden" name="event_id" value="<?= $eventIdCol ? $editEvent[$eventIdCol] : ''; ?>">
                     <?php } ?>
                     <div>
                         <label>Judul</label>
-                        <input type="text" name="title" value="<?= $editEvent ? htmlspecialchars($editEvent['title']) : ''; ?>" required>
+                        <input type="text" name="title" value="<?= $editEvent && isset($editEvent[$eventTitleCol]) ? htmlspecialchars($editEvent[$eventTitleCol]) : ''; ?>" required>
                     </div>
                     <div>
-                        <label>Jadwal (YYYY-MM-DD HH:MM:SS)</label>
-                        <input type="text" name="schedule" value="<?= $editEvent ? htmlspecialchars($editEvent['schedule_at']) : ''; ?>" placeholder="2025-12-31 10:00:00">
+                        <label>Jadwal</label>
+                        <input type="datetime-local" name="schedule" value="<?= $scheduleValue; ?>" placeholder="Pilih tanggal & waktu">
                     </div>
                     <div>
                         <label>Keterangan</label>
-                        <textarea name="detail" rows="3"><?= $editEvent ? htmlspecialchars($editEvent['detail']) : ''; ?></textarea>
+                        <textarea name="detail" rows="3"><?= $editEvent && $eventDetailCol && isset($editEvent[$eventDetailCol]) ? htmlspecialchars($editEvent[$eventDetailCol]) : ''; ?></textarea>
                     </div>
                     <button type="submit"><?= $editEvent ? 'Simpan Perubahan' : 'Tambah Event'; ?></button>
                 </form>

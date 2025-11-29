@@ -4,7 +4,7 @@ if (!isset($_SESSION['username'])) {
     header("Location: ../../index.php");
     exit;
 }
-if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'user') {
+if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'mahasiswa') {
     header("Location: ../../home.php");
     exit;
 }
@@ -92,9 +92,61 @@ $members = mysqli_query($conn, "
 
 $eventsTable = detect_events_table($conn);
 $eventsTableExists = $eventsTable !== null;
-$events = [];
+$eventGroupCol = null;
+$eventScheduleCol = null;
+$eventCreatedCol = null;
+$eventTitleCol = null;
+$eventDetailCol = null;
 if ($eventsTableExists) {
-    $res = mysqli_query($conn, "SELECT * FROM {$eventsTable} WHERE group_id=$groupId ORDER BY schedule_at DESC");
+    $colsRes = mysqli_query($conn, "SHOW COLUMNS FROM {$eventsTable}");
+    $cols = [];
+    while ($c = mysqli_fetch_assoc($colsRes)) {
+        $cols[] = $c['Field'];
+    }
+    foreach (['group_id', 'id_grup', 'idgrup', 'groupid'] as $candidate) {
+        if (in_array($candidate, $cols, true)) {
+            $eventGroupCol = $candidate;
+            break;
+        }
+    }
+    if (!$eventGroupCol) {
+        foreach ($cols as $c) {
+            if (stripos($c, 'grup') !== false || stripos($c, 'group') !== false) {
+                $eventGroupCol = $c;
+                break;
+            }
+        }
+    }
+    foreach (['title', 'judul', 'nama', 'nama_event'] as $candidate) {
+        if (in_array($candidate, $cols, true)) {
+            $eventTitleCol = $candidate;
+            break;
+        }
+    }
+    foreach (['detail', 'deskripsi', 'keterangan'] as $candidate) {
+        if (in_array($candidate, $cols, true)) {
+            $eventDetailCol = $candidate;
+            break;
+        }
+    }
+    foreach (['schedule_at', 'jadwal', 'tanggal', 'waktu'] as $candidate) {
+        if (in_array($candidate, $cols, true)) {
+            $eventScheduleCol = $candidate;
+            break;
+        }
+    }
+    foreach (['created_at', 'created', 'dibuat', 'createdAt'] as $candidate) {
+        if (in_array($candidate, $cols, true)) {
+            $eventCreatedCol = $candidate;
+            break;
+        }
+    }
+}
+$eventsTableReady = $eventsTableExists && $eventGroupCol && $eventTitleCol;
+$eventOrderCol = $eventScheduleCol ?: ($eventCreatedCol ?: 'id');
+$events = [];
+if ($eventsTableReady) {
+    $res = mysqli_query($conn, "SELECT * FROM {$eventsTable} WHERE {$eventGroupCol}=$groupId ORDER BY {$eventOrderCol} DESC");
     while ($ev = mysqli_fetch_assoc($res)) {
         $events[] = $ev;
     }
@@ -160,7 +212,9 @@ if ($eventsTableExists) {
 
     <h3>Event</h3>
     <?php if (!$eventsTableExists) { ?>
-        <p>Tabel <code>events</code> belum tersedia.</p>
+        <p>Tabel <code>events</code>/<code>event</code> belum tersedia.</p>
+    <?php } elseif (!$eventsTableReady) { ?>
+        <p>Tabel event ditemukan tetapi kolom wajib belum dikenali. Pastikan ada kolom relasi grup (group_id/id_grup/dll) dan kolom judul (title/judul/nama).</p>
     <?php } else { ?>
         <table>
             <tr><th>Judul</th><th>Jadwal</th><th>Keterangan</th></tr>
@@ -168,9 +222,9 @@ if ($eventsTableExists) {
                 <tr><td colspan="3" style="text-align:center;">Belum ada event.</td></tr>
             <?php } else { foreach ($events as $ev) { ?>
                 <tr>
-                    <td><?= htmlspecialchars($ev['title']); ?></td>
-                    <td><?= htmlspecialchars($ev['schedule_at']); ?></td>
-                    <td><?= htmlspecialchars($ev['detail']); ?></td>
+                    <td><?= htmlspecialchars($ev[$eventTitleCol]); ?></td>
+                    <td><?= htmlspecialchars($eventScheduleCol ? $ev[$eventScheduleCol] : ($eventCreatedCol ? $ev[$eventCreatedCol] : '')); ?></td>
+                    <td><?= htmlspecialchars($eventDetailCol ? $ev[$eventDetailCol] : ''); ?></td>
                 </tr>
             <?php } } ?>
         </table>

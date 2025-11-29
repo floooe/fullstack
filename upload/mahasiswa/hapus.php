@@ -12,14 +12,29 @@ if ($mysqli->connect_errno) {
 if (isset($_GET['nrp'])) {
     $nrp_to_delete = $_GET['nrp'];
 
-    $query_select = "SELECT foto_extention FROM mahasiswa WHERE nrp = ?";
+    // cek apakah ada kolom akun_username di tabel mahasiswa
+    $colRes = $mysqli->query("SHOW COLUMNS FROM mahasiswa");
+    $hasAkunCol = false;
+    while ($c = $colRes->fetch_assoc()) {
+        if ($c['Field'] === 'akun_username') { $hasAkunCol = true; break; }
+    }
+    $colRes->free();
+
+    // ambil data foto + akun_username (jika ada)
+    $query_select = $hasAkunCol
+        ? "SELECT foto_extention, akun_username FROM mahasiswa WHERE nrp = ?"
+        : "SELECT foto_extention FROM mahasiswa WHERE nrp = ?";
     $stmt_select = $mysqli->prepare($query_select);
     $stmt_select->bind_param('s', $nrp_to_delete);
     $stmt_select->execute();
     $result = $stmt_select->get_result();
+    $akun_username = null;
     
     if ($data = $result->fetch_assoc()) {
         $foto_extension = $data['foto_extention'];
+        if ($hasAkunCol && !empty($data['akun_username'])) {
+            $akun_username = $data['akun_username'];
+        }
         
         if (!empty($foto_extension)) {
             $nama_file_foto = $nrp_to_delete . '.' . $foto_extension;
@@ -37,6 +52,16 @@ if (isset($_GET['nrp'])) {
     $stmt_delete->bind_param('s', $nrp_to_delete);
 
     if ($stmt_delete->execute()) {
+        // hapus akun login default (nrp) dan akun kustom (jika ada)
+        $stmt_akun = $mysqli->prepare("DELETE FROM akun WHERE username = ?");
+        $stmt_akun->bind_param('s', $nrp_to_delete);
+        $stmt_akun->execute();
+        if ($akun_username && $akun_username !== $nrp_to_delete) {
+            $stmt_akun->bind_param('s', $akun_username);
+            $stmt_akun->execute();
+        }
+        $stmt_akun->close();
+
         header("Location: index.php");
         exit;
     } else {

@@ -21,14 +21,16 @@ if (!isset($_SESSION['username'])) {
 
     <?php if ($_SESSION['level'] === 'admin') { ?>
         <hr>
-        <h3>Menu Dosen</h3>
         <a href="upload/dosen/create_Group.php" class="btn-add">+ Buat Group</a> |
-        <a href="upload/dosen/groups.php">Kelola Group Saya</a> |
+        <a href="upload/dosen/groups.php">Group Saya</a> |
         <a href="upload/dosen/index.php">Kelola Dosen</a> |
         <a href="upload/mahasiswa/index.php">Kelola Mahasiswa</a>
-    <?php } else { ?>
+    <?php } elseif ($_SESSION['level'] === 'dosen') { ?>
         <hr>
-        <h3>Menu Mahasiswa</h3>
+        <a href="upload/dosen/create_Group.php" class="btn-add">+ Buat Group</a> |
+        <a href="upload/dosen/groups.php">Group Saya</a>
+    <?php } elseif ($_SESSION['level'] === 'mahasiswa') { ?>
+        <hr>
         <a href="upload/mahasiswa/groups.php">Group Saya</a> |
         <a href="upload/mahasiswa/groups.php#join">Gabung Group</a>
     <?php } ?>

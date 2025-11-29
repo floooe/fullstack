@@ -4,7 +4,8 @@ if (!isset($_SESSION['username'])) {
     header("Location: ../../index.php");
     exit;
 }
-if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
+// izinkan dosen maupun admin
+if (!isset($_SESSION['level']) || !in_array($_SESSION['level'], ['admin','dosen'])) {
     header("Location: ../../home.php");
     exit;
 }
@@ -16,14 +17,36 @@ $success = isset($_GET['success']);
 $createdCode = $_GET['kode'] ?? null;
 $message = isset($_GET['msg']) ? $_GET['msg'] : null;
 
-function detect_events_table($conn) {
+function detect_events_table_and_group_col($conn) {
+    $table = null;
     if (mysqli_num_rows(mysqli_query($conn, "SHOW TABLES LIKE 'events'")) > 0) {
-        return 'events';
+        $table = 'events';
+    } elseif (mysqli_num_rows(mysqli_query($conn, "SHOW TABLES LIKE 'event'")) > 0) {
+        $table = 'event';
     }
-    if (mysqli_num_rows(mysqli_query($conn, "SHOW TABLES LIKE 'event'")) > 0) {
-        return 'event';
+    if (!$table) return [null, null];
+
+    $groupCol = null;
+    $colsRes = mysqli_query($conn, "SHOW COLUMNS FROM {$table}");
+    $cols = [];
+    while ($c = mysqli_fetch_assoc($colsRes)) {
+        $cols[] = $c['Field'];
     }
-    return null;
+    foreach (['group_id', 'id_grup', 'idgrup', 'groupid'] as $candidate) {
+        if (in_array($candidate, $cols, true)) {
+            $groupCol = $candidate;
+            break;
+        }
+    }
+    if (!$groupCol) {
+        foreach ($cols as $c) {
+            if (stripos($c, 'grup') !== false || stripos($c, 'group') !== false) {
+                $groupCol = $c;
+                break;
+            }
+        }
+    }
+    return [$table, $groupCol];
 }
 
 // helper to read jenis
@@ -31,7 +54,9 @@ function parseJenis($description) {
     return stripos($description, '[public]') === 0 ? 'Public' : 'Private';
 }
 
-$eventsTable = detect_events_table($conn);
+$eventsTable = null;
+$eventsGroupCol = null;
+list($eventsTable, $eventsGroupCol) = detect_events_table_and_group_col($conn);
 
 // Hapus grup milik sendiri
 if (isset($_GET['delete'])) {
@@ -40,8 +65,8 @@ if (isset($_GET['delete'])) {
     if ($own && $own['created_by'] === $_SESSION['username']) {
         // bersihkan member & event bila ada
         mysqli_query($conn, "DELETE FROM group_members WHERE group_id=$delId");
-        if ($eventsTable) {
-            mysqli_query($conn, "DELETE FROM {$eventsTable} WHERE group_id=$delId");
+        if ($eventsTable && $eventsGroupCol) {
+            mysqli_query($conn, "DELETE FROM {$eventsTable} WHERE {$eventsGroupCol}=$delId");
         }
         mysqli_query($conn, "DELETE FROM groups WHERE id=$delId");
         header("Location: groups.php?msg=Grup berhasil dihapus");
