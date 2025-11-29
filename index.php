@@ -10,12 +10,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sql = "SELECT * FROM akun WHERE username='$username' AND password=MD5('$password')";
     $result = mysqli_query($conn, $sql);
 
-
     if (mysqli_num_rows($result) > 0) {
         $data = mysqli_fetch_assoc($result);
+
+        // Set session
         $_SESSION['username'] = $data['username'];
-        $_SESSION['level'] = ($data['isadmin'] == 1) ? 'admin' : 'user';
-        header("Location: home.php");
+        $_SESSION['level'] = ($data['isadmin'] == 1) ? 'admin' : 'dosen';
+
+        // Redirect otomatis berdasarkan level
+        if ($_SESSION['level'] === 'admin') {
+            header("Location: admin/home.php");
+        } else {
+            header("Location: upload/dosen/home.php");
+        }
         exit;
     } else {
         $error = "Username atau password salah!";
@@ -33,14 +40,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="login-container">
         <h2>Login</h2>
         <?php if (isset($error)) echo "<p class='error'>$error</p>"; ?>
+        
         <form method="post" action="">
             <label>Username:</label>
             <input type="text" name="username" required>
+            
             <label>Password:</label>
             <input type="password" name="password" required>
+            
             <button type="submit">Login</button>
         </form>
     </div>
 </body>
 </html>
-
