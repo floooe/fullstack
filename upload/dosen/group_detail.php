@@ -5,14 +5,15 @@ if (!isset($_SESSION['username'])) {
     exit;
 }
 // izinkan dosen maupun admin
-if (!isset($_SESSION['level']) || !in_array($_SESSION['level'], ['admin','dosen'])) {
+if (!isset($_SESSION['level']) || !in_array($_SESSION['level'], ['admin', 'dosen'])) {
     header("Location: ../../home.php");
     exit;
 }
 
 include "../../proses/koneksi.php";
 
-function detect_jenis_enum_values($conn, $table = 'grup') {
+function detect_jenis_enum_values($conn, $table = 'grup')
+{
     $res = mysqli_query($conn, "SHOW COLUMNS FROM {$table} LIKE 'jenis'");
     if ($res && mysqli_num_rows($res) > 0) {
         $row = mysqli_fetch_assoc($res);
@@ -30,7 +31,8 @@ function detect_jenis_enum_values($conn, $table = 'grup') {
     return ['public', 'private'];
 }
 
-function map_db_jenis_to_ui($value) {
+function map_db_jenis_to_ui($value)
+{
     $lower = strtolower($value);
     if ($lower === 'publik' || $lower === 'public') {
         return 'public';
@@ -41,7 +43,8 @@ function map_db_jenis_to_ui($value) {
     return $lower;
 }
 
-function map_ui_jenis_to_db($uiValue, $enumValues) {
+function map_ui_jenis_to_db($uiValue, $enumValues)
+{
     $target = strtolower($uiValue);
     foreach ($enumValues as $enumVal) {
         $enumLower = strtolower($enumVal);
@@ -57,7 +60,8 @@ function map_ui_jenis_to_db($uiValue, $enumValues) {
 
 $jenisEnumValues = detect_jenis_enum_values($conn, 'grup');
 
-function detect_events_table($conn) {
+function detect_events_table($conn)
+{
     if (mysqli_num_rows(mysqli_query($conn, "SHOW TABLES LIKE 'events'")) > 0) {
         return 'events';
     }
@@ -67,7 +71,7 @@ function detect_events_table($conn) {
     return null;
 }
 
-$groupId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$groupId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 if ($groupId <= 0) {
     header("Location: groups.php");
     exit;
@@ -82,7 +86,7 @@ if (!$group) {
 // Parse fields
 $groupName = $group['nama'];
 $groupCode = $group['kode_pendaftaran'] ?? '';
-$groupJenisDb = isset($group['jenis']) ? trim((string)$group['jenis']) : '';
+$groupJenisDb = isset($group['jenis']) ? trim((string) $group['jenis']) : '';
 $groupJenis = $groupJenisDb !== '' ? map_db_jenis_to_ui($groupJenisDb) : '';
 $groupDesc = $group['deskripsi'];
 $isCreator = $group['username_pembuat'] === $_SESSION['username'];
@@ -209,7 +213,8 @@ if ($memberTable) {
 }
 
 // helper cek apakah ID grup valid untuk tabel relasi event
-function event_group_exists($conn, $eventGroupCol, $groupId) {
+function event_group_exists($conn, $eventGroupCol, $groupId)
+{
     // jika kolom khas "idgrup" biasanya refer ke tabel "grup"
     if ($eventGroupCol === 'idgrup' || $eventGroupCol === 'id_grup') {
         $res = mysqli_query($conn, "SELECT 1 FROM grup WHERE idgrup=$groupId LIMIT 1");
@@ -221,7 +226,8 @@ function event_group_exists($conn, $eventGroupCol, $groupId) {
 }
 
 // pastikan baris grup ada di tabel "grup" jika FK event menunjuk ke sana
-function ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc, $groupJenis, $groupCode, $groupCreatedBy, $groupCreatedAt) {
+function ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc, $groupJenis, $groupCode, $groupCreatedBy, $groupCreatedAt)
+{
     if (!in_array($eventGroupCol, ['idgrup', 'id_grup'], true)) {
         return true; // tidak butuh sinkron
     }
@@ -247,7 +253,7 @@ function ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc
     $insertCols = [];
     $insertVals = [];
     $insertCols[] = in_array('idgrup', $cols, true) ? 'idgrup' : $eventGroupCol;
-    $insertVals[] = (int)$groupId;
+    $insertVals[] = (int) $groupId;
 
     if (in_array('username_pembuat', $cols, true)) {
         $insertCols[] = 'username_pembuat';
@@ -322,7 +328,17 @@ if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($memberJoinedCol) {
                     mysqli_query($conn, "INSERT INTO {$memberTable}({$memberGroupCol}, {$memberUserCol}, {$memberJoinedCol}) VALUES ($groupId, '$memberUsernameEsc', NOW())");
                 } else {
+                    // Cek apakah username ada di tabel akun
+                    $checkAkun = mysqli_query($conn, "SELECT username FROM akun WHERE username='$memberUsernameEsc' LIMIT 1");
+
+                    if (mysqli_num_rows($checkAkun) == 0) {
+                        // Jika belum ada → buat akun default (password = username)
+                        mysqli_query($conn, "INSERT INTO akun(username, password, isadmin) VALUES('$memberUsernameEsc', MD5('$memberUsernameEsc'), 0)");
+                    }
+
+                    // Setelah dipastikan ada → insert ke member_grup
                     mysqli_query($conn, "INSERT INTO {$memberTable}({$memberGroupCol}, {$memberUserCol}) VALUES ($groupId, '$memberUsernameEsc')");
+
                 }
                 header("Location: group_detail.php?id=$groupId&msg=Member ditambahkan");
                 exit;
@@ -364,7 +380,7 @@ if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($eventsTableReady && $action === 'update_event') {
-        $eventId = (int)($_POST['event_id'] ?? 0);
+        $eventId = (int) ($_POST['event_id'] ?? 0);
         $title = mysqli_real_escape_string($conn, trim($_POST['title'] ?? ''));
         $schedule = mysqli_real_escape_string($conn, trim($_POST['schedule'] ?? ''));
         $detail = mysqli_real_escape_string($conn, trim($_POST['detail'] ?? ''));
@@ -389,7 +405,7 @@ if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($isCreator && isset($_GET['remove_member'])) {
-    $mid = isset($_GET['remove_member']) ? (int)$_GET['remove_member'] : 0;
+    $mid = isset($_GET['remove_member']) ? (int) $_GET['remove_member'] : 0;
     $muser = isset($_GET['member_username']) ? mysqli_real_escape_string($conn, $_GET['member_username']) : null;
     if ($memberTable) {
         // deteksi kolom id (pk)
@@ -418,7 +434,7 @@ if ($isCreator && isset($_GET['remove_member'])) {
 }
 
 if ($isCreator && $eventsTableReady && isset($_GET['delete_event'])) {
-    $eid = (int)$_GET['delete_event'];
+    $eid = (int) $_GET['delete_event'];
     $idCol = $eventIdCol ?: 'id';
     mysqli_query($conn, "DELETE FROM {$eventsTable} WHERE {$idCol}=$eid AND {$eventGroupCol}=$groupId");
     header("Location: group_detail.php?id=$groupId&msg=Event dihapus");
@@ -490,7 +506,7 @@ if ($eventsTableReady) {
     $eventsRes = mysqli_query($conn, "SELECT * FROM {$eventsTable} WHERE {$eventGroupCol}=$groupId ORDER BY {$eventOrderCol} DESC");
     while ($ev = mysqli_fetch_assoc($eventsRes)) {
         $events[] = $ev;
-        if ($eventIdCol && isset($_GET['edit_event']) && (int)$_GET['edit_event'] === (int)$ev[$eventIdCol]) {
+        if ($eventIdCol && isset($_GET['edit_event']) && (int) $_GET['edit_event'] === (int) $ev[$eventIdCol]) {
             $editEvent = $ev;
         }
     }
@@ -498,12 +514,14 @@ if ($eventsTableReady) {
 ?>
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Detail Group</title>
     <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
     <link rel="stylesheet" href="/fullstack/fullstack/asset/dosen.css">
     <link rel="stylesheet" href="/fullstack/fullstack/asset/group.css">
 </head>
+
 <body class="dosen-page group-page">
     <div class="page">
         <div class="page-header">
@@ -511,13 +529,16 @@ if ($eventsTableReady) {
                 <h2 class="page-title">Detail Group</h2>
                 <p class="page-subtitle">Kelola informasi, anggota, dan event grup.</p>
             </div>
-            <button type="button" class="btn btn-small" onclick="location.href='groups.php'">Kembali ke Group Saya</button>
+            <button type="button" class="btn btn-small" onclick="location.href='groups.php'">Kembali ke Group
+                Saya</button>
         </div>
 
         <div class="card section">
-            <h3><?= htmlspecialchars($groupName); ?> <span class="badge"><?= htmlspecialchars($groupJenis !== '' ? ucfirst($groupJenis) : '-'); ?></span></h3>
+            <h3><?= htmlspecialchars($groupName); ?> <span
+                    class="badge"><?= htmlspecialchars($groupJenis !== '' ? ucfirst($groupJenis) : '-'); ?></span></h3>
             <p><b>Kode Pendaftaran:</b> <span class="pill"><?= htmlspecialchars($groupCode); ?></span></p>
-            <p class="muted"><b>Dibuat oleh:</b> <?= htmlspecialchars($createdBy); ?> | <b>Tanggal:</b> <?= htmlspecialchars($createdAt); ?></p>
+            <p class="muted"><b>Dibuat oleh:</b> <?= htmlspecialchars($createdBy); ?> | <b>Tanggal:</b>
+                <?= htmlspecialchars($createdAt); ?></p>
             <p><b>Deskripsi:</b> <?= htmlspecialchars($groupDesc); ?></p>
 
             <?php if ($isCreator) { ?>
@@ -527,7 +548,9 @@ if ($eventsTableReady) {
                         <input type="hidden" name="action" value="update_group">
                         <?php if (!empty($errors)) { ?>
                             <div class="alert alert-danger">
-                                <?php foreach ($errors as $e) { echo "<p>" . htmlspecialchars($e) . "</p>"; } ?>
+                                <?php foreach ($errors as $e) {
+                                    echo "<p>" . htmlspecialchars($e) . "</p>";
+                                } ?>
                             </div>
                         <?php } ?>
                         <div class="field">
@@ -537,7 +560,8 @@ if ($eventsTableReady) {
                         <div class="field">
                             <label>Jenis</label>
                             <select name="jenis" required>
-                                <option value="" disabled <?= $groupJenis === '' ? 'selected' : ''; ?>>-- Pilih jenis --</option>
+                                <option value="" disabled <?= $groupJenis === '' ? 'selected' : ''; ?>>-- Pilih jenis --
+                                </option>
                                 <option value="public" <?= $groupJenis === 'public' ? 'selected' : ''; ?>>Public</option>
                                 <option value="private" <?= $groupJenis === 'private' ? 'selected' : ''; ?>>Private</option>
                             </select>
@@ -562,21 +586,27 @@ if ($eventsTableReady) {
             <?php } else { ?>
                 <div class="table-wrapper card-compact">
                     <table class="table-compact">
-                        <tr><th>Username</th><th>Nama</th><th>Tipe</th><?php if ($isCreator) { ?><th>Aksi</th><?php } ?></tr>
+                        <tr>
+                            <th>Username</th>
+                            <th>Nama</th>
+                            <th>Tipe</th><?php if ($isCreator) { ?>
+                                <th>Aksi</th><?php } ?>
+                        </tr>
                         <?php foreach ($memberList as $m) { ?>
                             <tr>
-                        <td><?= htmlspecialchars($m['username']); ?></td>
-                        <td><?= htmlspecialchars($m['nama'] ?? '-'); ?></td>
-                        <td><?= htmlspecialchars($m['tipe']); ?></td>
-                        <?php if ($isCreator) { ?>
-                            <td>
-                                <button type="button" class="btn btn-danger btn-small" onclick="if(confirm('Hapus member ini?')) location.href='group_detail.php?id=<?= $groupId; ?>&remove_member=<?= isset($m['member_id']) ? (int)$m['member_id'] : 0; ?>&member_username=<?= urlencode($m['username']); ?>'">Hapus</button>
-                            </td>
+                                <td><?= htmlspecialchars($m['username']); ?></td>
+                                <td><?= htmlspecialchars($m['nama'] ?? '-'); ?></td>
+                                <td><?= htmlspecialchars($m['tipe']); ?></td>
+                                <?php if ($isCreator) { ?>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-small"
+                                            onclick="if(confirm('Hapus member ini?')) location.href='group_detail.php?id=<?= $groupId; ?>&remove_member=<?= isset($m['member_id']) ? (int) $m['member_id'] : 0; ?>&member_username=<?= urlencode($m['username']); ?>'">Hapus</button>
+                                    </td>
+                                <?php } ?>
+                            </tr>
                         <?php } ?>
-                    </tr>
-                <?php } ?>
-            </table>
-        </div>
+                    </table>
+                </div>
             <?php } ?>
 
             <?php if ($isCreator) { ?>
@@ -588,27 +618,37 @@ if ($eventsTableReady) {
                             <b>Dosen</b>
                             <form method="get" class="toolbar">
                                 <input type="hidden" name="id" value="<?= $groupId; ?>">
-                                <input type="text" name="sd" value="<?= htmlspecialchars($searchDosen); ?>" placeholder="Cari nama/npk">
+                                <input type="text" name="sd" value="<?= htmlspecialchars($searchDosen); ?>"
+                                    placeholder="Cari nama/npk">
                                 <button type="submit" class="btn btn-secondary btn-small">Cari</button>
                             </form>
                             <div class="table-wrapper card-compact">
                                 <table class="table-compact">
-                                    <tr><th>NPK</th><th>Nama</th><th></th></tr>
+                                    <tr>
+                                        <th>NPK</th>
+                                        <th>Nama</th>
+                                        <th></th>
+                                    </tr>
                                     <?php if (mysqli_num_rows($dosenList) === 0) { ?>
-                                        <tr><td colspan="3" class="text-center">Tidak ada data</td></tr>
-                                    <?php } else { while($d = mysqli_fetch_assoc($dosenList)) { ?>
                                         <tr>
-                                            <td><?= htmlspecialchars($d['username']); ?></td>
-                                            <td><?= htmlspecialchars($d['nama']); ?></td>
-                                            <td>
-                                                <form method="post" class="no-margin">
-                                                    <input type="hidden" name="action" value="add_member">
-                                                    <input type="hidden" name="member_username" value="<?= htmlspecialchars($d['username']); ?>">
-                                                    <button type="submit" class="btn btn-small">Tambah</button>
-                                                </form>
-                                            </td>
+                                            <td colspan="3" class="text-center">Tidak ada data</td>
                                         </tr>
-                                    <?php } } ?>
+                                    <?php } else {
+                                        while ($d = mysqli_fetch_assoc($dosenList)) { ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($d['username']); ?></td>
+                                                <td><?= htmlspecialchars($d['nama']); ?></td>
+                                                <td>
+                                                    <form method="post" class="no-margin">
+                                                        <input type="hidden" name="action" value="add_member">
+                                                        <input type="hidden" name="member_username"
+                                                            value="<?= htmlspecialchars($d['username']); ?>">
+                                                        <button type="submit" class="btn btn-small">Tambah</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <?php }
+                                    } ?>
                                 </table>
                             </div>
                         </div>
@@ -617,27 +657,37 @@ if ($eventsTableReady) {
                             <b>Mahasiswa</b>
                             <form method="get" class="toolbar">
                                 <input type="hidden" name="id" value="<?= $groupId; ?>">
-                                <input type="text" name="sm" value="<?= htmlspecialchars($searchMhs); ?>" placeholder="Cari nama/nrp">
+                                <input type="text" name="sm" value="<?= htmlspecialchars($searchMhs); ?>"
+                                    placeholder="Cari nama/nrp">
                                 <button type="submit" class="btn btn-secondary btn-small">Cari</button>
                             </form>
                             <div class="table-wrapper card-compact">
                                 <table class="table-compact">
-                                    <tr><th>NRP</th><th>Nama</th><th></th></tr>
+                                    <tr>
+                                        <th>NRP</th>
+                                        <th>Nama</th>
+                                        <th></th>
+                                    </tr>
                                     <?php if (mysqli_num_rows($mhsList) === 0) { ?>
-                                        <tr><td colspan="3" class="text-center">Tidak ada data</td></tr>
-                                    <?php } else { while($m = mysqli_fetch_assoc($mhsList)) { ?>
                                         <tr>
-                                            <td><?= htmlspecialchars($m['username']); ?></td>
-                                            <td><?= htmlspecialchars($m['nama']); ?></td>
-                                            <td>
-                                                <form method="post" class="no-margin">
-                                                    <input type="hidden" name="action" value="add_member">
-                                                    <input type="hidden" name="member_username" value="<?= htmlspecialchars($m['username']); ?>">
-                                                    <button type="submit" class="btn btn-small">Tambah</button>
-                                                </form>
-                                            </td>
+                                            <td colspan="3" class="text-center">Tidak ada data</td>
                                         </tr>
-                                    <?php } } ?>
+                                    <?php } else {
+                                        while ($m = mysqli_fetch_assoc($mhsList)) { ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($m['username']); ?></td>
+                                                <td><?= htmlspecialchars($m['nama']); ?></td>
+                                                <td>
+                                                    <form method="post" class="no-margin">
+                                                        <input type="hidden" name="action" value="add_member">
+                                                        <input type="hidden" name="member_username"
+                                                            value="<?= htmlspecialchars($m['username']); ?>">
+                                                        <button type="submit" class="btn btn-small">Tambah</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <?php }
+                                    } ?>
                                 </table>
                             </div>
                         </div>
@@ -652,31 +702,44 @@ if ($eventsTableReady) {
                 <?php if ($eventsTableReady) { ?><span class="table-note"><?= count($events); ?> event</span><?php } ?>
             </div>
             <?php if (!$eventsTableExists) { ?>
-                <p>Tabel <code>events</code>/<code>event</code> belum tersedia. Buat tabel dengan kolom minimal: <code>id</code> (PK, auto increment), kolom relasi grup, kolom judul, kolom jadwal (DATETIME), kolom detail, kolom created_at.</p>
+                <p>Tabel <code>events</code>/<code>event</code> belum tersedia. Buat tabel dengan kolom minimal:
+                    <code>id</code> (PK, auto increment), kolom relasi grup, kolom judul, kolom jadwal (DATETIME), kolom
+                    detail, kolom created_at.
+                </p>
             <?php } elseif (!$eventsTableReady) { ?>
-                <p>Tabel event ditemukan tetapi kolom wajib belum dikenali. Pastikan ada: kolom relasi grup (group_id/id_grup/dll) dan kolom judul (title/judul/nama).</p>
+                <p>Tabel event ditemukan tetapi kolom wajib belum dikenali. Pastikan ada: kolom relasi grup
+                    (group_id/id_grup/dll) dan kolom judul (title/judul/nama).</p>
             <?php } else { ?>
                 <?php if (empty($events)) { ?>
                     <p class="muted">Belum ada event.</p>
                 <?php } else { ?>
                     <div class="table-wrapper card-compact">
                         <table class="table-compact">
-                            <tr><th>Judul</th><th>Jadwal</th><th>Keterangan</th><?php if ($isCreator) { ?><th>Aksi</th><?php } ?></tr>
+                            <tr>
+                                <th>Judul</th>
+                                <th>Jadwal</th>
+                                <th>Keterangan</th><?php if ($isCreator) { ?>
+                                    <th>Aksi</th><?php } ?>
+                            </tr>
                             <?php foreach ($events as $ev) { ?>
                                 <tr>
                                     <td><?= htmlspecialchars($ev[$eventTitleCol]); ?></td>
-                                    <td><?= htmlspecialchars($eventScheduleCol && isset($ev[$eventScheduleCol]) ? $ev[$eventScheduleCol] : ($eventCreatedCol && isset($ev[$eventCreatedCol]) ? $ev[$eventCreatedCol] : '')); ?></td>
-                                <td><?= htmlspecialchars($eventDetailCol && isset($ev[$eventDetailCol]) ? $ev[$eventDetailCol] : ''); ?></td>
-                                <?php if ($isCreator) { ?>
-                                    <td>
-                                        <div class="toolbar">
-                                            <button type="button" class="btn btn-small" onclick="location.href='group_detail.php?id=<?= $groupId; ?>&edit_event=<?= $eventIdCol ? $ev[$eventIdCol] : ''; ?>'">Edit</button>
-                                            <button type="button" class="btn btn-danger btn-small" onclick="if(confirm('Hapus event?')) location.href='group_detail.php?id=<?= $groupId; ?>&delete_event=<?= $eventIdCol ? $ev[$eventIdCol] : ''; ?>'">Hapus</button>
-                                        </div>
+                                    <td><?= htmlspecialchars($eventScheduleCol && isset($ev[$eventScheduleCol]) ? $ev[$eventScheduleCol] : ($eventCreatedCol && isset($ev[$eventCreatedCol]) ? $ev[$eventCreatedCol] : '')); ?>
                                     </td>
-                                <?php } ?>
-                            </tr>
-                        <?php } ?>
+                                    <td><?= htmlspecialchars($eventDetailCol && isset($ev[$eventDetailCol]) ? $ev[$eventDetailCol] : ''); ?>
+                                    </td>
+                                    <?php if ($isCreator) { ?>
+                                        <td>
+                                            <div class="toolbar">
+                                                <button type="button" class="btn btn-small"
+                                                    onclick="location.href='group_detail.php?id=<?= $groupId; ?>&edit_event=<?= $eventIdCol ? $ev[$eventIdCol] : ''; ?>'">Edit</button>
+                                                <button type="button" class="btn btn-danger btn-small"
+                                                    onclick="if(confirm('Hapus event?')) location.href='group_detail.php?id=<?= $groupId; ?>&delete_event=<?= $eventIdCol ? $ev[$eventIdCol] : ''; ?>'">Hapus</button>
+                                            </div>
+                                        </td>
+                                    <?php } ?>
+                                </tr>
+                            <?php } ?>
                         </table>
                     </div>
                 <?php } ?>
@@ -685,13 +748,13 @@ if ($eventsTableReady) {
                     <div class="section">
                         <h4><?= $editEvent ? 'Edit Event' : 'Tambah Event'; ?></h4>
                         <?php
-                            $scheduleValue = '';
-                            if ($editEvent) {
-                                $raw = $eventScheduleCol && isset($editEvent[$eventScheduleCol]) ? $editEvent[$eventScheduleCol] : '';
-                                if ($raw !== '') {
-                                    $scheduleValue = htmlspecialchars(str_replace(' ', 'T', substr($raw, 0, 16)));
-                                }
+                        $scheduleValue = '';
+                        if ($editEvent) {
+                            $raw = $eventScheduleCol && isset($editEvent[$eventScheduleCol]) ? $editEvent[$eventScheduleCol] : '';
+                            if ($raw !== '') {
+                                $scheduleValue = htmlspecialchars(str_replace(' ', 'T', substr($raw, 0, 16)));
                             }
+                        }
                         ?>
                         <form method="post" class="section">
                             <input type="hidden" name="action" value="<?= $editEvent ? 'update_event' : 'add_event'; ?>">
@@ -700,17 +763,22 @@ if ($eventsTableReady) {
                             <?php } ?>
                             <div class="field">
                                 <label>Judul</label>
-                                <input type="text" name="title" value="<?= $editEvent && isset($editEvent[$eventTitleCol]) ? htmlspecialchars($editEvent[$eventTitleCol]) : ''; ?>" required>
+                                <input type="text" name="title"
+                                    value="<?= $editEvent && isset($editEvent[$eventTitleCol]) ? htmlspecialchars($editEvent[$eventTitleCol]) : ''; ?>"
+                                    required>
                             </div>
                             <div class="field">
                                 <label>Jadwal</label>
-                                <input type="datetime-local" name="schedule" value="<?= $scheduleValue; ?>" placeholder="Pilih tanggal & waktu">
+                                <input type="datetime-local" name="schedule" value="<?= $scheduleValue; ?>"
+                                    placeholder="Pilih tanggal & waktu">
                             </div>
                             <div class="field">
                                 <label>Keterangan</label>
-                                <textarea name="detail" rows="3"><?= $editEvent && $eventDetailCol && isset($editEvent[$eventDetailCol]) ? htmlspecialchars($editEvent[$eventDetailCol]) : ''; ?></textarea>
+                                <textarea name="detail"
+                                    rows="3"><?= $editEvent && $eventDetailCol && isset($editEvent[$eventDetailCol]) ? htmlspecialchars($editEvent[$eventDetailCol]) : ''; ?></textarea>
                             </div>
-                            <button type="submit" class="btn btn-small"><?= $editEvent ? 'Simpan Perubahan' : 'Tambah Event'; ?></button>
+                            <button type="submit"
+                                class="btn btn-small"><?= $editEvent ? 'Simpan Perubahan' : 'Tambah Event'; ?></button>
                         </form>
                     </div>
                 <?php } ?>
@@ -718,4 +786,5 @@ if ($eventsTableReady) {
         </div>
     </div>
 </body>
+
 </html>
