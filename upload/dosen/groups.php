@@ -117,19 +117,19 @@ $q = mysqli_query($conn, "SELECT * FROM grup WHERE username_pembuat='$username' 
             <tr><td colspan="5" style="text-align:center;">Belum ada grup yang Anda buat.</td></tr>
         <?php } else { 
             while($row = mysqli_fetch_assoc($q)){
-                $parts = explode(" | ", $row['name']);
+                $parts = explode(" | ", $row['nama']);
                 $nama = $parts[0];
                 $kode = $parts[1] ?? '-';
-                $jenis = parseJenis($row['description']);
+                $jenis = parseJenis($row['deskripsi']);
         ?>
             <tr>
                 <td><?= htmlspecialchars($nama); ?></td>
                 <td><?= htmlspecialchars($jenis); ?></td>
                 <td><b><?= htmlspecialchars($kode); ?></b></td>
-                <td><?= htmlspecialchars($row['created_at']); ?></td>
+                <td><?= htmlspecialchars($row['username_pembuat']); ?></td>
                 <td>
-                    <a href="group_detail.php?id=<?= $row['id']; ?>">Detail</a> | 
-                    <a href="groups.php?delete=<?= $row['id']; ?>" onclick="return confirm('Hapus grup beserta data di dalamnya?')">Hapus</a>
+                    <a href="group_detail.php?id=<?= $row['idgrup']; ?>">Detail</a> | 
+                    <a href="groups.php?delete=<?= $row['idgrup']; ?>" onclick="return confirm('Hapus grup beserta data di dalamnya?')">Hapus</a>
                 </td>
             </tr>
         <?php } } ?>

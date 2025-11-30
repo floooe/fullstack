@@ -15,9 +15,9 @@ include "../../proses/koneksi.php";
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     $nama = trim($_POST['name'] ?? '');
-    $desc = trim($_POST['description'] ?? '');
-    $jenis = ($_POST['jenis'] ?? 'public') === 'private' ? 'private' : 'public';
+    $jenis = ($_POST['jenis'] ?? 'public') === 'private' ? 'Private' : 'Public';
     $created_by = mysqli_real_escape_string($conn, $_SESSION['username']);
 
     if ($nama === '') {
@@ -25,12 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $kode = strtoupper(substr(md5(uniqid((string)time(), true)), 0, 6));
-        $name_final = mysqli_real_escape_string($conn, $nama . " | " . $kode);
-        $description_final = mysqli_real_escape_string($conn, "[" . $jenis . "] " . $desc);
 
-        $sql = "INSERT INTO groups(name, description, created_by, created_at) 
-                VALUES ('$name_final', '$description_final', '$created_by', NOW())";
+        // Generate kode unik 6 huruf/angka
+        $kode = strtoupper(substr(md5(time()), 0, 6));
+
+        // Escape nama
+        $nama_final = mysqli_real_escape_string($conn, $nama);
+
+        // UNTUK DATABASE SESUAI STRUKTUR
+        $sql = "INSERT INTO grup (username_pembuat, nama, jenis, kode_pendaftaran, tanggal_pembentukan)
+                VALUES ('$created_by', '$nama_final', '$jenis', '$kode', NOW())";
 
         if (mysqli_query($conn, $sql)) {
             header("Location: groups.php?success=1&kode=$kode");
@@ -40,6 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+?>
+
 ?>
 <!DOCTYPE html>
 <html>
