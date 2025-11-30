@@ -10,7 +10,6 @@ if ($mysqli->connect_errno) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    
     $nrp = $_POST['nrp'];
     $nama = $_POST['nama'];
     $gender = $_POST['gender'];
@@ -35,7 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $foto_extension = null;
     
-    //up foto
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] == UPLOAD_ERR_OK) {
         $foto = $_FILES['foto'];
         $foto_extension = pathinfo($foto['name'], PATHINFO_EXTENSION);
@@ -47,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Pastikan username akun unik
     $check_akun = $mysqli->prepare("SELECT username FROM akun WHERE username = ?");
     $check_akun->bind_param('s', $akun_username);
     $check_akun->execute();
@@ -60,10 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     $check_akun->close();
 
-    // Transaksi: simpan mahasiswa + akun
     $mysqli->begin_transaction();
     try {
-        // cek apakah tabel mahasiswa punya kolom akun_username
         $hasAkunCol = false;
         $colRes = $mysqli->query("SHOW COLUMNS FROM mahasiswa");
         while ($c = $colRes->fetch_assoc()) {
@@ -110,92 +105,71 @@ $mysqli->close();
 <html>
 <head>
     <title>Tambah Mahasiswa</title>
-    <style>
-        body{
-            font-family: Arial, sans-serif;
-            background-color: lightgray;
-            margin: 0;
-            padding: 40px;
-        }
-        h2{
-            text-align: center;
-            color: darkblue;
-            margin-bottom: 20px;
-        }
-        form{
-            max-width: 400px;
-            margin: auto;
-            background: white;
-            padding: 20px 35px;
-            border-radius: 6px;
-            box-shadow: 0 0 8px gray;
-        }
-        label{
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: black;
-        }
-        input[type="text"], input[type="file"] {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 15px;
-            border: 1px solid gray;
-            border-radius: 4px;
-        }
-        button{
-            display: block;
-            width: 100%;
-            background-color: green;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s ease-in-out, transform 0.1s;
-        }
-        button:hover{
-            background-color: darkgreen;
-        }
-    </style>
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/mahasiswa.css">
 </head>
-<body>
-    <h2>Tambah Data Mahasiswa</h2>
-    
-    <form action="tambah.php" method="POST" enctype="multipart/form-data">
-        <label for="nrp">NRP:</label>
-        <input type="text" name="nrp" id="nrp" required>
+<body class="mahasiswa-page">
+    <div class="page">
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Tambah Data Mahasiswa</h2>
+                <p class="page-subtitle">Lengkapi data mahasiswa berikut.</p>
+            </div>
+            <button type="button" class="btn btn-small" onclick="location.href='index.php'">Kembali</button>
+        </div>
 
-         <label for="nama">Nama:</label>
-         <input type="text" name="nama" id="nama" required>
+        <div class="card">
+            <form action="tambah.php" method="POST" enctype="multipart/form-data" class="section">
+                <div class="field">
+                    <label for="nrp">NRP</label>
+                    <input type="text" name="nrp" id="nrp" required>
+                </div>
+
+                <div class="field">
+                    <label for="nama">Nama</label>
+                    <input type="text" name="nama" id="nama" required>
+                </div>
  
-         <fieldset style="margin:15px 0; padding:10px; border:1px solid #ddd;">
-             <legend>Akun Login</legend>
-             <small>Jika dikosongkan, username otomatis pakai NRP.</small><br>
-             <label for="akun_username">Username</label>
-             <input type="text" id="akun_username" name="akun_username" placeholder="default: NRP"><br><br>
-             <label for="akun_password">Password</label>
-             <input type="password" id="akun_password" name="akun_password" required>
-         </fieldset>
+                <div class="card card-compact card-dashed">
+                    <strong>Akun Login</strong>
+                    <p class="muted">Jika dikosongkan, username otomatis pakai NRP.</p>
+                    <div class="field">
+                        <label for="akun_username">Username</label>
+                        <input type="text" id="akun_username" name="akun_username" placeholder="default: NRP">
+                    </div>
+                    <div class="field">
+                        <label for="akun_password">Password</label>
+                        <input type="password" id="akun_password" name="akun_password" required>
+                    </div>
+                </div>
 
-        <label for="gender">Jenis Kelamin:</label>
-        <select name="gender" id="gender" required>
-            <option value="">-- Pilih Gender --</option>
-            <option value="L">Laki-laki</option>
-            <option value="P">Perempuan</option>
-        </select><br><br>
+                <div class="field">
+                    <label for="gender">Jenis Kelamin</label>
+                    <select name="gender" id="gender" required>
+                        <option value="">-- Pilih Gender --</option>
+                        <option value="L">Laki-laki</option>
+                        <option value="P">Perempuan</option>
+                    </select>
+                </div>
 
-        <label for="tanggal_lahir">Tanggal Lahir:</label>
-        <input type="date" name="tanggal_lahir" id="tanggal_lahir" required><br><br>
+                <div class="field">
+                    <label for="tanggal_lahir">Tanggal Lahir</label>
+                    <input type="date" name="tanggal_lahir" id="tanggal_lahir" required>
+                </div>
 
-        <label for="angkatan">Angkatan:</label>
-        <input type="text" name="angkatan" id="angkatan" required placeholder="contoh: 2022">
+                <div class="field">
+                    <label for="angkatan">Angkatan</label>
+                    <input type="text" name="angkatan" id="angkatan" required placeholder="contoh: 2022">
+                </div>
 
-        <label for="foto">Foto:</label>
-        <input type="file" name="foto" id="foto">
+                <div class="field">
+                    <label for="foto">Foto</label>
+                    <input type="file" name="foto" id="foto">
+                </div>
 
-        <button type="submit">💾 Simpan</button>
-    </form>
+                <button type="submit" class="btn">Simpan</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

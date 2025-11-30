@@ -83,56 +83,68 @@ $q = mysqli_query($conn, "SELECT * FROM grup WHERE username_pembuat='$username' 
 <html>
 <head>
     <title>Group Saya</title>
-    <link rel="stylesheet" href="../../asset/style.css">
-    <style>
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-    </style>
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/dosen.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/group.css">
 </head>
-<body>
-    <h2>Group Saya</h2>
-    <p><a href="../../home.php">Kembali</a> | <a href="create_Group.php">+ Buat Group</a></p>
-
-    <?php if ($success && $createdCode) { ?>
-        <div style="background:#e8f5e9; padding:10px; border:1px solid #c8e6c9;">
-            Grup berhasil dibuat. Kode pendaftaran: <b><?= htmlspecialchars($createdCode); ?></b> (ditampilkan juga di halaman detail grup).
+<body class="dosen-page group-page">
+    <div class="page">
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Group Saya</h2>
+                <p class="page-subtitle">Kelola grup yang Anda buat dan bagikan kode pendaftaran.</p>
+            </div>
+            <div class="toolbar">
+                <button type="button" class="btn btn-small" onclick="location.href='../../home.php'">Home</button>
+                <button type="button" class="btn btn-small" onclick="location.href='create_Group.php'">+ Buat Group</button>
+            </div>
         </div>
-    <?php } ?>
 
-    <?php if ($message) { ?>
-        <div style="background:#e8f5e9; padding:10px; border:1px solid #c8e6c9; margin-top:10px;">
-            <?= htmlspecialchars($message); ?>
+        <?php if ($success && $createdCode) { ?>
+            <div class="alert alert-success">
+                Grup berhasil dibuat. Kode pendaftaran: <b><?= htmlspecialchars($createdCode); ?></b> (ditampilkan juga di halaman detail grup).
+            </div>
+        <?php } ?>
+
+        <?php if ($message) { ?>
+            <div class="alert alert-success">
+                <?= htmlspecialchars($message); ?>
+            </div>
+        <?php } ?>
+
+        <div class="table-wrapper card-compact">
+            <table class="table-compact">
+                <tr>
+                    <th>Nama Grup</th>
+                    <th>Jenis</th>
+                    <th>Kode</th>
+                    <th>Dibuat</th>
+                    <th>Aksi</th>
+                </tr>
+                <?php if (mysqli_num_rows($q) === 0) { ?>
+                    <tr><td colspan="5" class="text-center">Belum ada grup yang Anda buat.</td></tr>
+                <?php } else { 
+                    while($row = mysqli_fetch_assoc($q)){
+                        $parts = explode(" | ", $row['nama']);
+                        $nama = $parts[0];
+                        $kode = $parts[1] ?? '-';
+                        $jenis = parseJenis($row['deskripsi']);
+                ?>
+                    <tr>
+                        <td><?= htmlspecialchars($nama); ?></td>
+                        <td><?= htmlspecialchars($jenis); ?></td>
+                        <td><b><?= htmlspecialchars($kode); ?></b></td>
+                        <td><?= htmlspecialchars($row['username_pembuat']); ?></td>
+                        <td>
+                            <div class="toolbar">
+                                <button type="button" class="btn btn-small" onclick="location.href='group_detail.php?id=<?= $row['idgrup']; ?>'">Detail</button>
+                                <button type="button" class="btn btn-danger btn-small" onclick="if(confirm('Hapus grup beserta data di dalamnya?')) location.href='groups.php?delete=<?= $row['idgrup']; ?>'">Hapus</button>
+                            </div>
+                        </td>
+                    </tr>
+                <?php } } ?>
+            </table>
         </div>
-    <?php } ?>
-
-    <table>
-        <tr>
-            <th>Nama Grup</th>
-            <th>Jenis</th>
-            <th>Kode</th>
-            <th>Dibuat</th>
-            <th>Aksi</th>
-        </tr>
-        <?php if (mysqli_num_rows($q) === 0) { ?>
-            <tr><td colspan="5" style="text-align:center;">Belum ada grup yang Anda buat.</td></tr>
-        <?php } else { 
-            while($row = mysqli_fetch_assoc($q)){
-                $parts = explode(" | ", $row['nama']);
-                $nama = $parts[0];
-                $kode = $parts[1] ?? '-';
-                $jenis = parseJenis($row['deskripsi']);
-        ?>
-            <tr>
-                <td><?= htmlspecialchars($nama); ?></td>
-                <td><?= htmlspecialchars($jenis); ?></td>
-                <td><b><?= htmlspecialchars($kode); ?></b></td>
-                <td><?= htmlspecialchars($row['username_pembuat']); ?></td>
-                <td>
-                    <a href="group_detail.php?id=<?= $row['idgrup']; ?>">Detail</a> | 
-                    <a href="groups.php?delete=<?= $row['idgrup']; ?>" onclick="return confirm('Hapus grup beserta data di dalamnya?')">Hapus</a>
-                </td>
-            </tr>
-        <?php } } ?>
-    </table>
+    </div>
 </body>
 </html>

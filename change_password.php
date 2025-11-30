@@ -9,14 +9,27 @@ if (!isset($_SESSION['username'])) {
 <html>
 <head>
     <title>Ubah Password</title>
-    <link rel="stylesheet" href="asset/change_password.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/change_password.css">
 </head>
 <body>
-    <h2>Ubah Password</h2>
-    <form action="proses/change_password.php" method="POST">
-        Password baru: <input type="password" name="baru" required><br>
-        Ulangi password: <input type="password" name="ulang" required><br>
-        <button type="submit" name="ubah">Ubah Password</button>
-    </form>
+    <div class="container">
+        <h2>Ubah Password</h2>
+        <p>Pastikan password baru mudah diingat namun sulit ditebak.</p>
+        <form action="proses/change_password.php" method="POST">
+            <div class="field">
+                <label>Password baru</label>
+                <input type="password" name="baru" placeholder="Password baru" required>
+            </div>
+            <div class="field">
+                <label>Ulangi password</label>
+                <input type="password" name="ulang" placeholder="Konfirmasi password" required>
+            </div>
+            <button type="submit" name="ubah" class="btn btn-block">Simpan Perubahan</button>
+        </form>
+        <p class="mt-12" style="text-align:center; margin-bottom:0;">
+            <a href="home.php" class="btn btn-block" style="margin-top:10px;">Kembali ke Home</a>
+        </p>
+    </div>
 </body>
 </html>

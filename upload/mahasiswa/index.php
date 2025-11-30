@@ -37,155 +37,93 @@ $result = $stmt->get_result();
 <head>
     <meta charset="UTF-8">
     <title>Data Mahasiswa</title>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            background-color: white;
-            margin: 0;
-            padding: 20px;
-        }
-        h2 { 
-            text-align: center;
-            color: darkblue;
-        }
-        a {
-            text-decoration: none;
-            color: blue;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .btn-add {
-            padding: 8px 15px;
-            background-color: green;
-            color: white;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-        .btn-add:hover {
-            background-color: darkgreen;
-        }
-        table { 
-            border-collapse: collapse; 
-            margin: 20px auto;
-            width: 95%; 
-            background-color: white;
-        }
-        th, td { 
-            border: 1px solid lightgray; 
-            padding: 10px 12px; 
-            text-align: center; 
-        }
-        th { 
-            background-color: lightgray; 
-            color: black;
-        }
-        tr:nth-child(even) {
-            background-color: white;
-        }
-        img {
-            border-radius: 5px;
-        }
-        .pagination {
-            text-align: center;
-            margin-top: 15px;
-        }
-        .pagination a, .pagination b {
-            display: inline-block;
-            padding: 8px 12px;
-            border: 1px solid lightgray;
-            margin: 0 3px;
-            text-decoration: none;
-            color: black;
-            border-radius: 4px;
-        }
-        .pagination b {
-            background-color: blue;
-            color: white;
-            border-color: blue;
-        }
-    </style>
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/mahasiswa.css">
 </head>
-<body>
+<body class="mahasiswa-page">
 
-<h2>Daftar Mahasiswa</h2>
-<div style="text-align:left;">
-    <a href="../../home.php">Kembali</a>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Daftar Mahasiswa</h2>
+            <p class="page-subtitle">Kelola data mahasiswa lengkap dengan foto.</p>
+        </div>
+        <div class="toolbar">
+            <button type="button" class="btn btn-small" onclick="location.href='tambah.php'">+ Tambah Mahasiswa Baru</button>
+            <button type="button" class="btn btn-small" onclick="location.href='../../home.php'">Kembali</button>
+        </div>
     </div>
 
-<table>
-    <tr>
-        <th>No</th>
-        <th>NRP</th>
-        <th>Nama</th>
-        <th>Gender</th>
-        <th>Tanggal Lahir</th>
-        <th>Angkatan</th>
-        <th>Foto</th>
-        <th>Aksi</th>
-    </tr>
+    <div class="table-wrapper card-compact">
+        <table class="table-compact">
+            <tr>
+                <th>No</th>
+                <th>NRP</th>
+                <th>Nama</th>
+                <th>Gender</th>
+                <th>Tanggal Lahir</th>
+                <th>Angkatan</th>
+                <th>Foto</th>
+                <th>Aksi</th>
+            </tr>
 
-    <?php
-    $no = $offset + 1;
-    while ($data = $result->fetch_assoc()) :
-    ?>
-    <tr>
-        <td><?= $no++; ?></td>
-        <td><?= htmlspecialchars($data['nrp']); ?></td>
-        <td><?= htmlspecialchars($data['nama']); ?></td>
-        <td><?= htmlspecialchars($data['gender']); ?></td>
-        <td><?= htmlspecialchars($data['tanggal_lahir']); ?></td>
-        <td><?= htmlspecialchars($data['angkatan']); ?></td>
-        <td>
             <?php
-            if (!empty($data['foto_extention'])) {
-                $nama_file_foto = htmlspecialchars($data['nrp']) . '.' . htmlspecialchars($data['foto_extention']);
-                echo "<img src='../../uploads/mahasiswa/" . $nama_file_foto . "' height='70'>";
-            } else {
-                echo "-";
-            }
+            $no = $offset + 1;
+            while ($data = $result->fetch_assoc()) :
             ?>
-        </td>
-        <td>
-            <a href='edit.php?nrp=<?= urlencode($data['nrp']); ?>'>Edit</a> | 
-            <a href='hapus.php?nrp=<?= urlencode($data['nrp']); ?>' onclick="return confirm('Yakin ingin menghapus data ini?');">Hapus</a>
-        </td>
-    </tr>
-    <?php endwhile; ?>
-</table>
-            
-<div class="add-button-container">
-    <a href="tambah.php" class="btn-add">+ Tambah Mahasiswa Baru</a>
-</div><br>
+            <tr>
+                <td><?= $no++; ?></td>
+                <td><?= htmlspecialchars($data['nrp']); ?></td>
+                <td><?= htmlspecialchars($data['nama']); ?></td>
+                <td><?= htmlspecialchars($data['gender']); ?></td>
+                <td><?= htmlspecialchars($data['tanggal_lahir']); ?></td>
+                <td><?= htmlspecialchars($data['angkatan']); ?></td>
+                <td>
+                    <?php
+                    if (!empty($data['foto_extention'])) {
+                        $nama_file_foto = htmlspecialchars($data['nrp']) . '.' . htmlspecialchars($data['foto_extention']);
+                        echo "<img src='../../uploads/mahasiswa/" . $nama_file_foto . "' height='70'>";
+                    } else {
+                        echo "-";
+                    }
+                    ?>
+                </td>
+                <td>
+                    <div class="toolbar">
+                        <button type="button" class="btn btn-small" onclick="location.href='edit.php?nrp=<?= urlencode($data['nrp']); ?>'">Edit</button>
+                        <button type="button" class="btn btn-danger btn-small" onclick="if(confirm('Yakin ingin menghapus data ini?')) location.href='hapus.php?nrp=<?= urlencode($data['nrp']); ?>'">Hapus</button>
+                    </div>
+                </td>
+            </tr>
+            <?php endwhile; ?>
+        </table>
+    </div>
+                
+    <form method="get" class="toolbar mt-10">
+        <span class="page-subtitle">Tampilkan</span>
+        <select name="limit" class="w-auto" onchange="this.form.submit()">
+            <?php foreach([5,10,15,20] as $opt): ?>
+                <option value="<?=$opt?>" <?=($opt==$limit)?'selected':''?>><?=$opt?></option>
+            <?php endforeach; ?>
+        </select>
+        <span class="page-subtitle">data per halaman</span>
+    </form>
 
-<form method="get" style="text-align:left; margin-bottom:10px;">
-    Tampilkan 
-    <select name="limit" onchange="this.form.submit()">
-        <?php foreach([5,10,15,20] as $opt): ?>
-            <option value="<?=$opt?>" <?=($opt==$limit)?'selected':''?>><?=$opt?></option>
-        <?php endforeach; ?>
-    </select>
-    data per halaman
-</form>
+    <div class="pagination">
+        <?php if ($page > 1): ?>
+            <a class="btn btn-secondary btn-small" href='?page=1&limit=<?=$limit?>'>First</a>
+            <a class="btn btn-secondary btn-small" href='?page=<?=($page-1)?>&limit=<?=$limit?>'>Prev</a>
+        <?php endif; ?>
 
-
-
-<div class="pagination">
-    <?php if ($page > 1): ?>
-        <a href='?page=1&limit=<?=$limit?>'>First</a>
-        <a href='?page=<?=($page-1)?>&limit=<?=$limit?>'>Prev</a>
-    <?php endif; ?>
-
-    <?php for ($i = 1; $i <= $totalPage; $i++): ?>
-        <?= ($i == $page) ? "<b>$i</b>" : "<a href='?page=$i&limit=$limit'>$i</a>" ?>
-    <?php endfor; ?>
-    
-    <?php if ($page < $totalPage): ?>
-        <a href='?page=<?=($page+1)?>&limit=<?=$limit?>'>Next</a>
-        <a href='?page=<?=$totalPage?>&limit=<?=$limit?>'>Last</a>
-    <?php endif; ?>
+        <?php for ($i = 1; $i <= $totalPage; $i++): ?>
+            <?= ($i == $page) ? "<span class=\"btn btn-small\">$i</span>" : "<a class='btn btn-secondary btn-small' href='?page=$i&limit=$limit'>$i</a>" ?>
+        <?php endfor; ?>
+        
+        <?php if ($page < $totalPage): ?>
+            <a class="btn btn-secondary btn-small" href='?page=<?=($page+1)?>&limit=<?=$limit?>'>Next</a>
+            <a class="btn btn-secondary btn-small" href='?page=<?=$totalPage?>&limit=<?=$limit?>'>Last</a>
+        <?php endif; ?>
+    </div>
 </div>
 
 <?php

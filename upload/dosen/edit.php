@@ -52,7 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (!$stmt->execute()) { throw new Exception($stmt->error); }
         $stmt->close();
 
-        // Update/insert akun
         $cekStmt = $mysqli->prepare("SELECT username FROM akun WHERE username = ?");
         $cekStmt->bind_param('s', $akun_username_lama);
         $cekStmt->execute();
@@ -60,7 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $adaAkunLama = $cekStmt->num_rows > 0;
         $cekStmt->close();
 
-        // Jika ganti username, pastikan unik
         if ($akun_username_baru !== $akun_username_lama) {
             $cekBaru = $mysqli->prepare("SELECT username FROM akun WHERE username = ?");
             $cekBaru->bind_param('s', $akun_username_baru);
@@ -83,7 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (!$u->execute()) { throw new Exception($u->error); }
             $u->close();
         } else {
-            // Akun belum ada: hanya buat jika password diberikan
             if (trim($akun_password) !== '') {
                 $ins = $mysqli->prepare("INSERT INTO akun (username, password, isadmin) VALUES (?, MD5(?), 0)");
                 $ins->bind_param('ss', $akun_username_baru, $akun_password);
@@ -119,92 +116,64 @@ $mysqli->close();
 <head>
     <meta charset="UTF-8">
     <title>Edit Dosen</title>
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/dosen.css">
 </head>
-<body>
-    <div class="container">
-        <h2>Edit Data Dosen</h2>
-        
-        <form action="edit.php?npk=<?= htmlspecialchars($data['npk']); ?>" method="POST" enctype="multipart/form-data">
-            <label for="npk">NPK</label>
-            <input type="text" id="npk" name="npk" value="<?= htmlspecialchars($data['npk']); ?>" required><br><br>
+<body class="dosen-page">
+    <div class="page">
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Edit Data Dosen</h2>
+                <p class="page-subtitle">Perbarui informasi dosen dan akun login.</p>
+            </div>
+            <button type="button" class="btn btn-secondary btn-small" onclick="location.href='index.php'">Kembali</button>
+        </div>
 
-            <label for="nama">Nama</label>
-            <input type="text" id="nama" name="nama" value="<?= htmlspecialchars($data['nama']); ?>" required><br><br>
-            <fieldset style="margin:15px 0; padding:10px; border:1px solid #ddd;">
-                <legend>Akun Login</legend>
-                <small>Biarkan password kosong jika tidak diubah.</small><br>
-                <?php $prefUser = htmlspecialchars($data['npk']); ?>
-                <label for="akun_username">Username</label>
-                <input type="text" id="akun_username" name="akun_username" value="<?= $prefUser ?>" placeholder="default: NPK"><br><br>
-                <input type="hidden" name="akun_username_lama" value="<?= $prefUser ?>">
-                <label for="akun_password">Password Baru</label>
-                <input type="password" id="akun_password" name="akun_password" placeholder="kosongkan jika tidak ganti">
-            </fieldset>
-            
-            <label>Foto Saat Ini</label>
-            <?php if (!empty($data['foto_extension'])): ?>
-                <img src="../../uploads/dosen/<?= htmlspecialchars($data['npk']) . '.' . htmlspecialchars($data['foto_extension']); ?>" class="thumb">
-            <?php else: ?>
-                <span class="no-photo">Tidak ada foto</span>
-            <?php endif; ?>
-            <br><br>
+        <div class="card">
+            <form action="edit.php?npk=<?= htmlspecialchars($data['npk']); ?>" method="POST" enctype="multipart/form-data" class="section">
+                <div class="field">
+                    <label for="npk">NPK</label>
+                    <input type="text" id="npk" name="npk" value="<?= htmlspecialchars($data['npk']); ?>" required>
+                </div>
 
-            <label for="foto">Ganti Foto (opsional)</label>
-            <input type="file" id="foto" name="foto">
+                <div class="field">
+                    <label for="nama">Nama</label>
+                    <input type="text" id="nama" name="nama" value="<?= htmlspecialchars($data['nama']); ?>" required>
+                </div>
 
-            <input type="hidden" name="ext_foto_lama" value="<?= htmlspecialchars($data['foto_extension']); ?>"><br><br>
+                <div class="card card-compact card-dashed">
+                    <strong>Akun Login</strong>
+                    <p class="muted">Biarkan password kosong jika tidak diubah.</p>
+                    <?php $prefUser = htmlspecialchars($data['npk']); ?>
+                    <div class="field">
+                        <label for="akun_username">Username</label>
+                        <input type="text" id="akun_username" name="akun_username" value="<?= $prefUser ?>" placeholder="default: NPK">
+                        <input type="hidden" name="akun_username_lama" value="<?= $prefUser ?>">
+                    </div>
+                    <div class="field">
+                        <label for="akun_password">Password Baru</label>
+                        <input type="password" id="akun_password" name="akun_password" placeholder="kosongkan jika tidak ganti">
+                    </div>
+                </div>
+                
+                <div class="field">
+                    <label>Foto Saat Ini</label>
+                    <?php if (!empty($data['foto_extension'])): ?>
+                        <img src="../../uploads/dosen/<?= htmlspecialchars($data['npk']) . '.' . htmlspecialchars($data['foto_extension']); ?>" class="thumb" height="90" alt="Foto Dosen">
+                    <?php else: ?>
+                        <span class="pill">Tidak ada foto</span>
+                    <?php endif; ?>
+                    <input type="hidden" name="ext_foto_lama" value="<?= htmlspecialchars($data['foto_extension']); ?>">
+                </div>
 
-            <button type="submit">🔄 Update Data</button><br>
-        </form>
+                <div class="field">
+                    <label for="foto">Ganti Foto (opsional)</label>
+                    <input type="file" id="foto" name="foto">
+                </div>
 
-        <a href="index.php" class="back-link">← Kembali ke Daftar Dosen</a>
+                <button type="submit" class="btn">Simpan Perubahan</button>
+            </form>
+        </div>
     </div>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 500px;
-            margin: 40px auto;
-            padding: 25px;
-            background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 25px;
-            color: #333;
-        }
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: bold;
-            color: #444;
-        }
-        .no-photo {
-            display: inline-block;
-            padding: 8px 12px;
-            background: #eee;
-            color: #666;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-        button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background: #007BFF;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            font-size: 15px;
-            cursor: pointer;
-            transition: background 0.2s ease-in-out;
-        }
-    </style>
 </body>
 </html>

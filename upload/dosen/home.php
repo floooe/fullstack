@@ -47,46 +47,53 @@ $data = mysqli_query($conn, "SELECT * FROM grup WHERE username_pembuat='$usernam
 <html>
 <head>
     <title>Halaman Home Dosen</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 30px; }
-        table { border-collapse: collapse; width: 60%; margin-top: 20px; }
-        table, th, td { border: 1px solid #999; padding: 10px; text-align: center; }
-        input[type=text] { padding: 8px; width: 250px; }
-        button { padding: 8px 15px; cursor: pointer; }
-    </style>
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/dosen.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/group.css">
 </head>
-<body>
+<body class="dosen-page group-page">
+    <div class="page">
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Selamat Datang, <?= $_SESSION['username'] ?> </h2>
+                <p class="page-subtitle">Buat grup baru dan lihat daftar grup yang Anda kelola.</p>
+            </div>
+            <button type="button" class="btn btn-small" onclick="location.href='../../home.php'">Kembali ke Home</button>
+        </div>
 
-<h2>Selamat Datang, <?= $_SESSION['username'] ?> </h2>
+        <div class="card section">
+            <h3>Tambah Group Baru</h3>
+            <form method="POST" class="section max-420">
+                <div class="field">
+                    <label>Nama Group</label>
+                    <input type="text" name="nama" required placeholder="Masukkan nama grup">
+                </div>
+                <button type="submit" name="tambah" class="btn btn-small">Tambah</button>
+            </form>
+            <?php if (!empty($error)) { echo "<p class='alert alert-danger mt-10'>" . htmlspecialchars($error) . "</p>"; } ?>
+        </div>
 
-<h3>Tambah Group Baru</h3>
-
-<form method="POST">
-    <label>Nama Group :</label><br>
-    <input type="text" name="nama" required>
-    <button type="submit" name="tambah">Tambah</button>
-</form>
-
-<?php if (!empty($error)) { echo "<p style='color:red;'>$error</p>"; } ?>
-
-<h3>Daftar Group Anda</h3>
-
-<table>
-    <tr>
-        <th>No</th>
-        <th>Nama Group</th>
-        <th>Aksi</th>
-    </tr>
-    <?php 
-    $no = 1;
-    while ($row = mysqli_fetch_assoc($data)): ?>
-    <tr>
-        <td><?= $no++; ?></td>
-        <td><?= $row['nama']; ?></td>
-        <td><a href="detail_grup.php?id=<?= $row['idgrup']; ?>">Detail</a></td>
-    </tr>
-    <?php endwhile; ?>
-</table>
-
+        <div class="card section">
+            <h3>Daftar Group Anda</h3>
+            <div class="table-wrapper card-compact max-720">
+                <table class="table-compact">
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Group</th>
+                        <th>Aksi</th>
+                    </tr>
+                    <?php 
+                    $no = 1;
+                    while ($row = mysqli_fetch_assoc($data)): ?>
+                    <tr>
+                        <td><?= $no++; ?></td>
+                        <td><?= htmlspecialchars($row['nama']); ?></td>
+                        <td><button type="button" class="btn btn-small" onclick="location.href='detail_grup.php?id=<?= $row['idgrup']; ?>'">Detail</button></td>
+                    </tr>
+                    <?php endwhile; ?>
+                </table>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

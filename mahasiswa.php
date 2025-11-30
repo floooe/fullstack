@@ -32,73 +32,75 @@ $result = mysqli_query($conn, $sql);
     <meta charset="UTF-8">
     <title>Daftar Mahasiswa (View Only)</title>
     <link rel="stylesheet" href="asset/style.css">
-    <style>
-        .note { color: #555; font-size: 0.95em; margin-left: 10px; }
-        table { width: 98%; }
-    </style>
+    <link rel="stylesheet" href="asset/mahasiswa.css">
     </head>
-<body>
+<body class="mahasiswa-page">
+    <div class="page">
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Daftar Mahasiswa</h2>
+                <p class="page-subtitle note">(hanya bisa melihat, tanpa edit/hapus)</p>
+            </div>
+            <a href="home.php" class="btn btn-secondary btn-small">Kembali</a>
+        </div>
 
-<h2>Daftar Mahasiswa</h2>
-<div style="text-align:left; margin-bottom:10px;">
-    <a href="home.php">Kembali</a>
-    <span class="note">(hanya bisa melihat, tanpa edit/hapus)</span>
+        <div class="table-wrapper card-compact">
+            <table>
+                <tr>
+                    <th>No</th>
+                    <th>NRP</th>
+                    <th>Nama</th>
+                    <th>Gender</th>
+                    <th>Tanggal Lahir</th>
+                    <th>Angkatan</th>
+                    <th>Foto</th>
+                </tr>
+
+                <?php $no = $offset + 1; while ($data = mysqli_fetch_assoc($result)) : ?>
+                <tr>
+                    <td><?= $no++; ?></td>
+                    <td><?= htmlspecialchars($data['nrp']); ?></td>
+                    <td><?= htmlspecialchars($data['nama']); ?></td>
+                    <td><?= htmlspecialchars($data['gender']); ?></td>
+                    <td><?= htmlspecialchars($data['tanggal_lahir']); ?></td>
+                    <td><?= htmlspecialchars($data['angkatan']); ?></td>
+                    <td>
+                        <?php if (!empty($data['foto_extention'])) { 
+                            $nama_file_foto = htmlspecialchars($data['nrp']) . '.' . htmlspecialchars($data['foto_extention']);
+                            echo "<img src='uploads/mahasiswa/" . $nama_file_foto . "' height='70' alt='Foto Mahasiswa'>";
+                        } else { echo "-"; } ?>
+                    </td>
+                </tr>
+                <?php endwhile; ?>
+            </table>
+        </div>
+
+        <form method="get" class="toolbar">
+            <span class="page-subtitle">Tampilkan</span>
+            <select name="limit" class="w-auto" onchange="this.form.submit()">
+                <?php foreach([5,10,15,20] as $opt): ?>
+                    <option value="<?=$opt?>" <?=($opt==$limit)?'selected':''?>><?=$opt?></option>
+                <?php endforeach; ?>
+            </select>
+            <span class="page-subtitle">data per halaman</span>
+        </form>
+
+        <div class="pagination">
+            <?php if ($page > 1): ?>
+                <a class="btn btn-small" href='?page=1&limit=<?=$limit?>'>First</a>
+                <a class="btn btn-small" href='?page=<?=($page-1)?>&limit=<?=$limit?>'>Prev</a>
+            <?php endif; ?>
+
+            <?php for ($i = 1; $i <= $pages; $i++): ?>
+                <?= ($i == $page) ? "<span class=\"btn btn-small\">$i</span>" : "<a class='btn btn-small' href='?page=$i&limit=$limit'>$i</a>" ?>
+            <?php endfor; ?>
+            
+            <?php if ($page < $pages): ?>
+                <a class="btn btn-small" href='?page=<?=($page+1)?>&limit=<?=$limit?>'>Next</a>
+                <a class="btn btn-small" href='?page=<?=$pages?>&limit=<?=$limit?>'>Last</a>
+            <?php endif; ?>
+        </div>
     </div>
-
-<table>
-    <tr>
-        <th>No</th>
-        <th>NRP</th>
-        <th>Nama</th>
-        <th>Gender</th>
-        <th>Tanggal Lahir</th>
-        <th>Angkatan</th>
-        <th>Foto</th>
-    </tr>
-
-    <?php $no = $offset + 1; while ($data = mysqli_fetch_assoc($result)) : ?>
-    <tr>
-        <td><?= $no++; ?></td>
-        <td><?= htmlspecialchars($data['nrp']); ?></td>
-        <td><?= htmlspecialchars($data['nama']); ?></td>
-        <td><?= htmlspecialchars($data['gender']); ?></td>
-        <td><?= htmlspecialchars($data['tanggal_lahir']); ?></td>
-        <td><?= htmlspecialchars($data['angkatan']); ?></td>
-        <td>
-            <?php if (!empty($data['foto_extention'])) { 
-                $nama_file_foto = htmlspecialchars($data['nrp']) . '.' . htmlspecialchars($data['foto_extention']);
-                echo "<img src='uploads/mahasiswa/" . $nama_file_foto . "' height='70' alt='Foto Mahasiswa'>";
-            } else { echo "-"; } ?>
-        </td>
-    </tr>
-    <?php endwhile; ?>
-</table>
-
-<form method="get" style="text-align:left; margin:10px 0;">
-    Tampilkan 
-    <select name="limit" onchange="this.form.submit()">
-        <?php foreach([5,10,15,20] as $opt): ?>
-            <option value="<?=$opt?>" <?=($opt==$limit)?'selected':''?>><?=$opt?></option>
-        <?php endforeach; ?>
-    </select>
-    data per halaman
-</form>
-
-<div class="pagination">
-    <?php if ($page > 1): ?>
-        <a href='?page=1&limit=<?=$limit?>'>First</a>
-        <a href='?page=<?=($page-1)?>&limit=<?=$limit?>'>Prev</a>
-    <?php endif; ?>
-
-    <?php for ($i = 1; $i <= $pages; $i++): ?>
-        <?= ($i == $page) ? "<b>$i</b>" : "<a href='?page=$i&limit=$limit'>$i</a>" ?>
-    <?php endfor; ?>
-    
-    <?php if ($page < $pages): ?>
-        <a href='?page=<?=($page+1)?>&limit=<?=$limit?>'>Next</a>
-        <a href='?page=<?=$pages?>&limit=<?=$limit?>'>Last</a>
-    <?php endif; ?>
-</div>
 
 </body>
 </html>

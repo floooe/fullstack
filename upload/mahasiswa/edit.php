@@ -14,7 +14,6 @@ if (!isset($_GET['nrp'])) {
 }
 $nrp_asli = $_GET['nrp'];
 
-//ambil data
 $query = "SELECT nrp, nama, gender, tanggal_lahir, angkatan, foto_extention FROM mahasiswa WHERE nrp = ?";
 $stmt = $mysqli->prepare($query);
 $stmt->bind_param('s', $nrp_asli);
@@ -39,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $akun_username_baru = isset($_POST['akun_username']) && trim($_POST['akun_username']) !== '' ? trim($_POST['akun_username']) : $nrp_baru;
     $akun_password = $_POST['akun_password'] ?? '';
 
-    // Proses upload foto baru
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
         if (!empty($ext_foto_lama)) {
             $file_foto_lama = "../../uploads/mahasiswa/" . $nrp_asli . '.' . $ext_foto_lama;
@@ -60,7 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $mysqli->begin_transaction();
     try {
-        //update data mahasiswa
         $query = "UPDATE mahasiswa 
                   SET nrp = ?, nama = ?, gender = ?, tanggal_lahir = ?, angkatan = ?, foto_extention = ? 
                   WHERE nrp = ?";
@@ -69,7 +66,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (!$stmt->execute()) { throw new Exception($stmt->error); }
         $stmt->close();
 
-        // akun: cek akun lama
         $cekStmt = $mysqli->prepare("SELECT username FROM akun WHERE username = ?");
         $cekStmt->bind_param('s', $akun_username_lama);
         $cekStmt->execute();
@@ -77,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $adaAkunLama = $cekStmt->num_rows > 0;
         $cekStmt->close();
 
-        // jika ganti username, pastikan unik
         if ($akun_username_baru !== $akun_username_lama) {
             $cekBaru = $mysqli->prepare("SELECT username FROM akun WHERE username = ?");
             $cekBaru->bind_param('s', $akun_username_baru);
@@ -121,99 +116,83 @@ $mysqli->close();
 <html>
 <head>
     <title>Edit Mahasiswa</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: lightgray;
-            margin: 0;
-            padding: 20px;
-        }
-        h2 {
-            text-align: center;
-            color: darkblue;
-            margin-bottom: 20px;
-        }
-        form {
-            max-width: 400px;
-            margin: auto;
-            background-color: white;
-            padding: 20px;
-            border: 2px solid lightblue;
-            border-radius: 8px;
-        }
-        label {
-            font-weight: bold;
-            color: black;
-        }
-        button {
-            background-color: green;
-            color: white;
-            border: none;
-            padding: 10px 15px; 
-            border-radius: 4px;
-        }
-        button:hover {
-            background-color: darkgreen;
-        }
-        span {
-            color: red;
-            font-style: italic;
-        }
-    </style>
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/mahasiswa.css">
 </head>
-<body>
-    <div class="container">
-    <h2>Edit Data Mahasiswa</h2>
-
-    <form action="edit.php?nrp=<?= htmlspecialchars($data['nrp']); ?>" method="POST" enctype="multipart/form-data">
-        <label for="nrp">NRP:</label><br>
-        <input type="text" id="nrp" name="nrp" value="<?= htmlspecialchars($data['nrp']); ?>" required><br><br>
-
-        <label for="nama">Nama:</label><br>
-        <input type="text" id="nama" name="nama" value="<?= htmlspecialchars($data['nama']); ?>" required><br><br>
-
-        <fieldset style="margin:15px 0; padding:10px; border:1px solid #ddd;">
-            <legend>Akun Login</legend>
-            <small>Biarkan password kosong jika tidak diubah.</small><br>
-            <?php $prefUser = htmlspecialchars($data['nrp']); ?>
-            <label for="akun_username">Username:</label>
-            <input type="text" id="akun_username" name="akun_username" value="<?= $prefUser ?>" placeholder="default: NRP"><br><br>
-            <input type="hidden" name="akun_username_lama" value="<?= $prefUser ?>">
-            <label for="akun_password">Password Baru:</label>
-            <input type="password" id="akun_password" name="akun_password" placeholder="kosongkan jika tidak ganti">
-        </fieldset>
-
-        <label for="gender">Jenis Kelamin:</label><br>
-        <select id="gender" name="gender" required>
-            <option value="">-- Pilih Gender --</option>
-            <option value="Pria" <?= $data['gender'] == 'Pria' ? 'selected' : '' ?>>Pria</option>
-            <option value="Wanita" <?= $data['gender'] == 'Wanita' ? 'selected' : '' ?>>Wanita</option>
-        </select><br><br>
-
-        <label for="tanggal_lahir">Tanggal Lahir:</label><br>
-        <input type="date" id="tanggal_lahir" name="tanggal_lahir" value="<?= htmlspecialchars($data['tanggal_lahir']); ?>"><br><br>
-
-        <label for="angkatan">Angkatan:</label><br>
-        <input type="text" id="angkatan" name="angkatan" value="<?= htmlspecialchars($data['angkatan']); ?>" placeholder="contoh: 2022"><br><br>
-
-        <label>Foto Saat Ini:</label>
-        <?php if (!empty($data['foto_extention'])): ?>
-            <div class="foto-preview">
-                <img src="../../uploads/mahasiswa/<?= htmlspecialchars($data['nrp']) . '.' . htmlspecialchars($data['foto_extention']); ?>" class="thumb" alt="Foto Mahasiswa">
+<body class="mahasiswa-page">
+    <div class="page">
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Edit Data Mahasiswa</h2>
+                <p class="page-subtitle">Perbarui profil mahasiswa dan akun login.</p>
             </div>
-        <?php else: ?>
-            <div class="no-photo">Tidak ada foto</div>
-        <?php endif; ?>
-        <input type="hidden" name="ext_foto_lama" value="<?= htmlspecialchars($data['foto_extention']); ?>">
+            <button type="button" class="btn btn-small" onclick="location.href='index.php'">Kembali</button>
+        </div>
 
-        <label for="foto">Ganti Foto (opsional):</label>
-        <input type="file" id="foto" name="foto">
+        <div class="card">
+            <form action="edit.php?nrp=<?= htmlspecialchars($data['nrp']); ?>" method="POST" enctype="multipart/form-data" class="section">
+                <div class="field">
+                    <label for="nrp">NRP</label>
+                    <input type="text" id="nrp" name="nrp" value="<?= htmlspecialchars($data['nrp']); ?>" required>
+                </div>
 
-        <button type="submit">🔄 Update Data</button>
-    </form>
+                <div class="field">
+                    <label for="nama">Nama</label>
+                    <input type="text" id="nama" name="nama" value="<?= htmlspecialchars($data['nama']); ?>" required>
+                </div>
 
-    <a href="index.php" class="back-link">← Kembali ke Daftar Mahasiswa</a>
-</div>
+                <div class="card card-compact card-dashed">
+                    <strong>Akun Login</strong>
+                    <p class="muted">Biarkan password kosong jika tidak diubah.</p>
+                    <?php $prefUser = htmlspecialchars($data['nrp']); ?>
+                    <div class="field">
+                        <label for="akun_username">Username</label>
+                        <input type="text" id="akun_username" name="akun_username" value="<?= $prefUser ?>" placeholder="default: NRP">
+                        <input type="hidden" name="akun_username_lama" value="<?= $prefUser ?>">
+                    </div>
+                    <div class="field">
+                        <label for="akun_password">Password Baru</label>
+                        <input type="password" id="akun_password" name="akun_password" placeholder="kosongkan jika tidak ganti">
+                    </div>
+                </div>
 
+                <div class="field">
+                    <label for="gender">Jenis Kelamin</label>
+                    <select id="gender" name="gender" required>
+                        <option value="">-- Pilih Gender --</option>
+                        <option value="Pria" <?= $data['gender'] == 'Pria' ? 'selected' : '' ?>>Pria</option>
+                        <option value="Wanita" <?= $data['gender'] == 'Wanita' ? 'selected' : '' ?>>Wanita</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="tanggal_lahir">Tanggal Lahir</label>
+                    <input type="date" id="tanggal_lahir" name="tanggal_lahir" value="<?= htmlspecialchars($data['tanggal_lahir']); ?>">
+                </div>
+
+                <div class="field">
+                    <label for="angkatan">Angkatan</label>
+                    <input type="text" id="angkatan" name="angkatan" value="<?= htmlspecialchars($data['angkatan']); ?>" placeholder="contoh: 2022">
+                </div>
+
+                <div class="field">
+                    <label>Foto Saat Ini</label>
+                    <?php if (!empty($data['foto_extention'])): ?>
+                        <img src="../../uploads/mahasiswa/<?= htmlspecialchars($data['nrp']) . '.' . htmlspecialchars($data['foto_extention']); ?>" class="thumb" height="90" alt="Foto Mahasiswa">
+                    <?php else: ?>
+                        <span class="pill">Tidak ada foto</span>
+                    <?php endif; ?>
+                    <input type="hidden" name="ext_foto_lama" value="<?= htmlspecialchars($data['foto_extention']); ?>">
+                </div>
+
+                <div class="field">
+                    <label for="foto">Ganti Foto (opsional)</label>
+                    <input type="file" id="foto" name="foto">
+                </div>
+
+                <button type="submit" class="btn">Simpan Perubahan</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

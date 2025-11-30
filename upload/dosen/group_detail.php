@@ -366,198 +366,225 @@ if ($eventsTableReady) {
 <html>
 <head>
     <title>Detail Group</title>
-    <link rel="stylesheet" href="../../asset/style.css">
-    <style>
-        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        .section { margin-bottom: 25px; }
-        .chip { display: inline-block; padding: 4px 8px; background: #eef; border-radius: 4px; }
-    </style>
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/dosen.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/group.css">
 </head>
-<body>
-    <h2>Detail Group</h2>
-    <p><a href="groups.php">Kembali ke Group Saya</a></p>
-
-    <?php if ($info) { ?>
-        <div style="background:#e8f5e9; padding:10px; border:1px solid #c8e6c9; margin-bottom:10px;"><?= htmlspecialchars($info); ?></div>
-    <?php } ?>
-    <?php if (!empty($errors)) { ?>
-        <div style="background:#ffebee; padding:10px; border:1px solid #ffcdd2; margin-bottom:10px;">
-            <?php foreach ($errors as $e) { echo "<p>" . htmlspecialchars($e) . "</p>"; } ?>
+<body class="dosen-page group-page">
+    <div class="page">
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Detail Group</h2>
+                <p class="page-subtitle">Kelola informasi, anggota, dan event grup.</p>
+            </div>
+            <button type="button" class="btn btn-small" onclick="location.href='groups.php'">Kembali ke Group Saya</button>
         </div>
-    <?php } ?>
 
-    <div class="section">
-        <h3><?= htmlspecialchars($groupName); ?> <span class="chip"><?= htmlspecialchars(ucfirst($groupJenis)); ?></span></h3>
-        <p><b>Kode Pendaftaran:</b> <span style="font-size:1.1em;"><?= htmlspecialchars($groupCode); ?></span></p>
-        <p><b>Dibuat oleh:</b> <?= htmlspecialchars($group['created_by']); ?> | <b>Tanggal:</b> <?= htmlspecialchars($group['created_at']); ?></p>
-        <p><b>Deskripsi:</b> <?= htmlspecialchars($groupDesc); ?></p>
-
-        <?php if ($isCreator) { ?>
-            <h4>Ubah Informasi Grup</h4>
-            <form method="post">
-                <input type="hidden" name="action" value="update_group">
-                <div>
-                    <label>Nama</label>
-                    <input type="text" name="name" value="<?= htmlspecialchars($groupName); ?>" required>
-                </div>
-                <div>
-                    <label>Jenis</label>
-                    <select name="jenis">
-                        <option value="public" <?= $groupJenis === 'public' ? 'selected' : ''; ?>>Public</option>
-                        <option value="private" <?= $groupJenis === 'private' ? 'selected' : ''; ?>>Private</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Deskripsi</label>
-                    <textarea name="description" rows="3"><?= htmlspecialchars($groupDesc); ?></textarea>
-                </div>
-                <button type="submit">Simpan Perubahan</button>
-            </form>
+        <?php if ($info) { ?>
+            <div class="alert alert-success"><?= htmlspecialchars($info); ?></div>
         <?php } ?>
-    </div>
+        <?php if (!empty($errors)) { ?>
+            <div class="alert alert-danger">
+                <?php foreach ($errors as $e) { echo "<p>" . htmlspecialchars($e) . "</p>"; } ?>
+            </div>
+        <?php } ?>
 
-    <div class="section">
-        <h3>Member</h3>
-        <?php if (count($memberList) === 0) { ?>
-            <p>Belum ada member.</p>
-        <?php } else { ?>
-            <table>
-                <tr><th>Username</th><th>Nama</th><th>Tipe</th><?php if ($isCreator) { ?><th>Aksi</th><?php } ?></tr>
-                <?php foreach ($memberList as $m) { ?>
-                    <tr>
+        <div class="card section">
+            <h3><?= htmlspecialchars($groupName); ?> <span class="badge"><?= htmlspecialchars(ucfirst($groupJenis)); ?></span></h3>
+            <p><b>Kode Pendaftaran:</b> <span class="pill"><?= htmlspecialchars($groupCode); ?></span></p>
+            <p class="muted"><b>Dibuat oleh:</b> <?= htmlspecialchars($group['created_by']); ?> | <b>Tanggal:</b> <?= htmlspecialchars($group['created_at']); ?></p>
+            <p><b>Deskripsi:</b> <?= htmlspecialchars($groupDesc); ?></p>
+
+            <?php if ($isCreator) { ?>
+                <div class="section mt-12">
+                    <h4>Ubah Informasi Grup</h4>
+                    <form method="post" class="section">
+                        <input type="hidden" name="action" value="update_group">
+                        <div class="field">
+                            <label>Nama</label>
+                            <input type="text" name="name" value="<?= htmlspecialchars($groupName); ?>" required>
+                        </div>
+                        <div class="field">
+                            <label>Jenis</label>
+                            <select name="jenis">
+                                <option value="public" <?= $groupJenis === 'public' ? 'selected' : ''; ?>>Public</option>
+                                <option value="private" <?= $groupJenis === 'private' ? 'selected' : ''; ?>>Private</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Deskripsi</label>
+                            <textarea name="description" rows="3"><?= htmlspecialchars($groupDesc); ?></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-small">Simpan Perubahan</button>
+                    </form>
+                </div>
+            <?php } ?>
+        </div>
+
+        <div class="card section">
+            <div class="page-header page-header-tight">
+                <h3>Member</h3>
+                <span class="table-note"><?= count($memberList); ?> anggota</span>
+            </div>
+            <?php if (count($memberList) === 0) { ?>
+                <p class="muted">Belum ada member.</p>
+            <?php } else { ?>
+                <div class="table-wrapper card-compact">
+                    <table class="table-compact">
+                        <tr><th>Username</th><th>Nama</th><th>Tipe</th><?php if ($isCreator) { ?><th>Aksi</th><?php } ?></tr>
+                        <?php foreach ($memberList as $m) { ?>
+                            <tr>
                         <td><?= htmlspecialchars($m['username']); ?></td>
                         <td><?= htmlspecialchars($m['nama'] ?? '-'); ?></td>
                         <td><?= htmlspecialchars($m['tipe']); ?></td>
                         <?php if ($isCreator) { ?>
-                            <td><a href="group_detail.php?id=<?= $groupId; ?>&remove_member=<?= $m['id']; ?>" onclick="return confirm('Hapus member ini?')">Hapus</a></td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-small" onclick="if(confirm('Hapus member ini?')) location.href='group_detail.php?id=<?= $groupId; ?>&remove_member=<?= $m['id']; ?>'">Hapus</button>
+                            </td>
                         <?php } ?>
                     </tr>
                 <?php } ?>
             </table>
-        <?php } ?>
-
-        <?php if ($isCreator) { ?>
-            <h4>Tambah Member</h4>
-            <p>Pilih dari daftar dosen/mahasiswa di bawah (klik Tambah). Ketik untuk mencari.</p>
-            <div style="display:flex; gap:20px; flex-wrap:wrap;">
-                <div style="flex:1; min-width:320px;">
-                    <b>Dosen</b>
-                    <form method="get" style="margin:6px 0;">
-                        <input type="hidden" name="id" value="<?= $groupId; ?>">
-                        <input type="text" name="sd" value="<?= htmlspecialchars($searchDosen); ?>" placeholder="Cari nama/npk">
-                        <button type="submit">Cari</button>
-                    </form>
-                    <table>
-                        <tr><th>NPK</th><th>Nama</th><th></th></tr>
-                        <?php if (mysqli_num_rows($dosenList) === 0) { ?>
-                            <tr><td colspan="3" style="text-align:center;">Tidak ada data</td></tr>
-                        <?php } else { while($d = mysqli_fetch_assoc($dosenList)) { ?>
-                            <tr>
-                                <td><?= htmlspecialchars($d['username']); ?></td>
-                                <td><?= htmlspecialchars($d['nama']); ?></td>
-                                <td>
-                                    <form method="post" style="margin:0;">
-                                        <input type="hidden" name="action" value="add_member">
-                                        <input type="hidden" name="member_username" value="<?= htmlspecialchars($d['username']); ?>">
-                                        <button type="submit">Tambah</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php } } ?>
-                    </table>
-                </div>
-
-                <div style="flex:1; min-width:320px;">
-                    <b>Mahasiswa</b>
-                    <form method="get" style="margin:6px 0;">
-                        <input type="hidden" name="id" value="<?= $groupId; ?>">
-                        <input type="text" name="sm" value="<?= htmlspecialchars($searchMhs); ?>" placeholder="Cari nama/nrp">
-                        <button type="submit">Cari</button>
-                    </form>
-                    <table>
-                        <tr><th>NRP</th><th>Nama</th><th></th></tr>
-                        <?php if (mysqli_num_rows($mhsList) === 0) { ?>
-                            <tr><td colspan="3" style="text-align:center;">Tidak ada data</td></tr>
-                        <?php } else { while($m = mysqli_fetch_assoc($mhsList)) { ?>
-                            <tr>
-                                <td><?= htmlspecialchars($m['username']); ?></td>
-                                <td><?= htmlspecialchars($m['nama']); ?></td>
-                                <td>
-                                    <form method="post" style="margin:0;">
-                                        <input type="hidden" name="action" value="add_member">
-                                        <input type="hidden" name="member_username" value="<?= htmlspecialchars($m['username']); ?>">
-                                        <button type="submit">Tambah</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php } } ?>
-                    </table>
-                </div>
-            </div>
-        <?php } ?>
-    </div>
-
-    <div class="section">
-        <h3>Event Group</h3>
-        <?php if (!$eventsTableExists) { ?>
-            <p>Tabel <code>events</code>/<code>event</code> belum tersedia. Buat tabel dengan kolom minimal: <code>id</code> (PK, auto increment), kolom relasi grup, kolom judul, kolom jadwal (DATETIME), kolom detail, kolom created_at.</p>
-        <?php } elseif (!$eventsTableReady) { ?>
-            <p>Tabel event ditemukan tetapi kolom wajib belum dikenali. Pastikan ada: kolom relasi grup (group_id/id_grup/dll) dan kolom judul (title/judul/nama).</p>
-        <?php } else { ?>
-            <?php if (empty($events)) { ?>
-                <p>Belum ada event.</p>
-            <?php } else { ?>
-                <table>
-                    <tr><th>Judul</th><th>Jadwal</th><th>Keterangan</th><?php if ($isCreator) { ?><th>Aksi</th><?php } ?></tr>
-                    <?php foreach ($events as $ev) { ?>
-                        <tr>
-                            <td><?= htmlspecialchars($ev[$eventTitleCol]); ?></td>
-                            <td><?= htmlspecialchars($eventScheduleCol && isset($ev[$eventScheduleCol]) ? $ev[$eventScheduleCol] : ($eventCreatedCol && isset($ev[$eventCreatedCol]) ? $ev[$eventCreatedCol] : '')); ?></td>
-                            <td><?= htmlspecialchars($eventDetailCol && isset($ev[$eventDetailCol]) ? $ev[$eventDetailCol] : ''); ?></td>
-                            <?php if ($isCreator) { ?>
-                                <td>
-                                    <a href="group_detail.php?id=<?= $groupId; ?>&edit_event=<?= $eventIdCol ? $ev[$eventIdCol] : ''; ?>">Edit</a> |
-                                    <a href="group_detail.php?id=<?= $groupId; ?>&delete_event=<?= $eventIdCol ? $ev[$eventIdCol] : ''; ?>" onclick="return confirm('Hapus event?')">Hapus</a>
-                                </td>
-                            <?php } ?>
-                        </tr>
-                    <?php } ?>
-                </table>
+        </div>
             <?php } ?>
 
             <?php if ($isCreator) { ?>
-                <h4><?= $editEvent ? 'Edit Event' : 'Tambah Event'; ?></h4>
-                <?php
-                    $scheduleValue = '';
-                    if ($editEvent) {
-                        $raw = $eventScheduleCol && isset($editEvent[$eventScheduleCol]) ? $editEvent[$eventScheduleCol] : '';
-                        if ($raw !== '') {
-                            $scheduleValue = htmlspecialchars(str_replace(' ', 'T', substr($raw, 0, 16)));
-                        }
-                    }
-                ?>
-                <form method="post">
-                    <input type="hidden" name="action" value="<?= $editEvent ? 'update_event' : 'add_event'; ?>">
-                    <?php if ($editEvent) { ?>
-                        <input type="hidden" name="event_id" value="<?= $eventIdCol ? $editEvent[$eventIdCol] : ''; ?>">
-                    <?php } ?>
-                    <div>
-                        <label>Judul</label>
-                        <input type="text" name="title" value="<?= $editEvent && isset($editEvent[$eventTitleCol]) ? htmlspecialchars($editEvent[$eventTitleCol]) : ''; ?>" required>
+                <div class="section">
+                    <h4>Tambah Member</h4>
+                    <p class="muted">Pilih dari daftar dosen/mahasiswa di bawah (klik Tambah). Ketik untuk mencari.</p>
+                    <div class="stack">
+                        <div class="card card-compact flex-tile">
+                            <b>Dosen</b>
+                            <form method="get" class="toolbar">
+                                <input type="hidden" name="id" value="<?= $groupId; ?>">
+                                <input type="text" name="sd" value="<?= htmlspecialchars($searchDosen); ?>" placeholder="Cari nama/npk">
+                                <button type="submit" class="btn btn-secondary btn-small">Cari</button>
+                            </form>
+                            <div class="table-wrapper card-compact">
+                                <table class="table-compact">
+                                    <tr><th>NPK</th><th>Nama</th><th></th></tr>
+                                    <?php if (mysqli_num_rows($dosenList) === 0) { ?>
+                                        <tr><td colspan="3" class="text-center">Tidak ada data</td></tr>
+                                    <?php } else { while($d = mysqli_fetch_assoc($dosenList)) { ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($d['username']); ?></td>
+                                            <td><?= htmlspecialchars($d['nama']); ?></td>
+                                            <td>
+                                                <form method="post" class="no-margin">
+                                                    <input type="hidden" name="action" value="add_member">
+                                                    <input type="hidden" name="member_username" value="<?= htmlspecialchars($d['username']); ?>">
+                                                    <button type="submit" class="btn btn-small">Tambah</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php } } ?>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card card-compact flex-tile">
+                            <b>Mahasiswa</b>
+                            <form method="get" class="toolbar">
+                                <input type="hidden" name="id" value="<?= $groupId; ?>">
+                                <input type="text" name="sm" value="<?= htmlspecialchars($searchMhs); ?>" placeholder="Cari nama/nrp">
+                                <button type="submit" class="btn btn-secondary btn-small">Cari</button>
+                            </form>
+                            <div class="table-wrapper card-compact">
+                                <table class="table-compact">
+                                    <tr><th>NRP</th><th>Nama</th><th></th></tr>
+                                    <?php if (mysqli_num_rows($mhsList) === 0) { ?>
+                                        <tr><td colspan="3" class="text-center">Tidak ada data</td></tr>
+                                    <?php } else { while($m = mysqli_fetch_assoc($mhsList)) { ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($m['username']); ?></td>
+                                            <td><?= htmlspecialchars($m['nama']); ?></td>
+                                            <td>
+                                                <form method="post" class="no-margin">
+                                                    <input type="hidden" name="action" value="add_member">
+                                                    <input type="hidden" name="member_username" value="<?= htmlspecialchars($m['username']); ?>">
+                                                    <button type="submit" class="btn btn-small">Tambah</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php } } ?>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label>Jadwal</label>
-                        <input type="datetime-local" name="schedule" value="<?= $scheduleValue; ?>" placeholder="Pilih tanggal & waktu">
-                    </div>
-                    <div>
-                        <label>Keterangan</label>
-                        <textarea name="detail" rows="3"><?= $editEvent && $eventDetailCol && isset($editEvent[$eventDetailCol]) ? htmlspecialchars($editEvent[$eventDetailCol]) : ''; ?></textarea>
-                    </div>
-                    <button type="submit"><?= $editEvent ? 'Simpan Perubahan' : 'Tambah Event'; ?></button>
-                </form>
+                </div>
             <?php } ?>
-        <?php } ?>
+        </div>
+
+        <div class="card section">
+            <div class="page-header page-header-tight">
+                <h3>Event Group</h3>
+                <?php if ($eventsTableReady) { ?><span class="table-note"><?= count($events); ?> event</span><?php } ?>
+            </div>
+            <?php if (!$eventsTableExists) { ?>
+                <p>Tabel <code>events</code>/<code>event</code> belum tersedia. Buat tabel dengan kolom minimal: <code>id</code> (PK, auto increment), kolom relasi grup, kolom judul, kolom jadwal (DATETIME), kolom detail, kolom created_at.</p>
+            <?php } elseif (!$eventsTableReady) { ?>
+                <p>Tabel event ditemukan tetapi kolom wajib belum dikenali. Pastikan ada: kolom relasi grup (group_id/id_grup/dll) dan kolom judul (title/judul/nama).</p>
+            <?php } else { ?>
+                <?php if (empty($events)) { ?>
+                    <p class="muted">Belum ada event.</p>
+                <?php } else { ?>
+                    <div class="table-wrapper card-compact">
+                        <table class="table-compact">
+                            <tr><th>Judul</th><th>Jadwal</th><th>Keterangan</th><?php if ($isCreator) { ?><th>Aksi</th><?php } ?></tr>
+                            <?php foreach ($events as $ev) { ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($ev[$eventTitleCol]); ?></td>
+                                    <td><?= htmlspecialchars($eventScheduleCol && isset($ev[$eventScheduleCol]) ? $ev[$eventScheduleCol] : ($eventCreatedCol && isset($ev[$eventCreatedCol]) ? $ev[$eventCreatedCol] : '')); ?></td>
+                                <td><?= htmlspecialchars($eventDetailCol && isset($ev[$eventDetailCol]) ? $ev[$eventDetailCol] : ''); ?></td>
+                                <?php if ($isCreator) { ?>
+                                    <td>
+                                        <div class="toolbar">
+                                            <button type="button" class="btn btn-small" onclick="location.href='group_detail.php?id=<?= $groupId; ?>&edit_event=<?= $eventIdCol ? $ev[$eventIdCol] : ''; ?>'">Edit</button>
+                                            <button type="button" class="btn btn-danger btn-small" onclick="if(confirm('Hapus event?')) location.href='group_detail.php?id=<?= $groupId; ?>&delete_event=<?= $eventIdCol ? $ev[$eventIdCol] : ''; ?>'">Hapus</button>
+                                        </div>
+                                    </td>
+                                <?php } ?>
+                            </tr>
+                        <?php } ?>
+                        </table>
+                    </div>
+                <?php } ?>
+
+                <?php if ($isCreator) { ?>
+                    <div class="section">
+                        <h4><?= $editEvent ? 'Edit Event' : 'Tambah Event'; ?></h4>
+                        <?php
+                            $scheduleValue = '';
+                            if ($editEvent) {
+                                $raw = $eventScheduleCol && isset($editEvent[$eventScheduleCol]) ? $editEvent[$eventScheduleCol] : '';
+                                if ($raw !== '') {
+                                    $scheduleValue = htmlspecialchars(str_replace(' ', 'T', substr($raw, 0, 16)));
+                                }
+                            }
+                        ?>
+                        <form method="post" class="section">
+                            <input type="hidden" name="action" value="<?= $editEvent ? 'update_event' : 'add_event'; ?>">
+                            <?php if ($editEvent) { ?>
+                                <input type="hidden" name="event_id" value="<?= $eventIdCol ? $editEvent[$eventIdCol] : ''; ?>">
+                            <?php } ?>
+                            <div class="field">
+                                <label>Judul</label>
+                                <input type="text" name="title" value="<?= $editEvent && isset($editEvent[$eventTitleCol]) ? htmlspecialchars($editEvent[$eventTitleCol]) : ''; ?>" required>
+                            </div>
+                            <div class="field">
+                                <label>Jadwal</label>
+                                <input type="datetime-local" name="schedule" value="<?= $scheduleValue; ?>" placeholder="Pilih tanggal & waktu">
+                            </div>
+                            <div class="field">
+                                <label>Keterangan</label>
+                                <textarea name="detail" rows="3"><?= $editEvent && $eventDetailCol && isset($editEvent[$eventDetailCol]) ? htmlspecialchars($editEvent[$eventDetailCol]) : ''; ?></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-small"><?= $editEvent ? 'Simpan Perubahan' : 'Tambah Event'; ?></button>
+                        </form>
+                    </div>
+                <?php } ?>
+            <?php } ?>
+        </div>
     </div>
 </body>
 </html>

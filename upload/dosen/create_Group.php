@@ -45,46 +45,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
-?>
 <!DOCTYPE html>
 <html>
 <head>
     <title>Buat Group</title>
-    <link rel="stylesheet" href="../../asset/style.css">
-    <style>
-        .form-group { margin-bottom: 10px; }
-        label { display: block; font-weight: bold; }
-        input[type=text], select, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
-    </style>
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/dosen.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/group.css">
 </head>
-<body>
-    <h2>Buat Group Baru</h2>
-    <p><a href="groups.php">Kembali ke Group Saya</a></p>
+<body class="dosen-page group-page">
+    <div class="page">
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Buat Group Baru</h2>
+                <p class="page-subtitle">Susun grup dan bagikan kode pendaftaran ke anggota.</p>
+            </div>
+            <button type="button" class="btn btn-secondary btn-small" onclick="location.href='../../home.php'">Kembali ke Home</button>
+        </div>
 
-    <?php if (!empty($errors)) { ?>
-        <div style="color:red;">
-            <?php foreach ($errors as $e) { echo "<p>" . htmlspecialchars($e) . "</p>"; } ?>
-        </div>
-    <?php } ?>
+        <?php if (!empty($errors)) { ?>
+            <div class="alert alert-danger">
+                <?php foreach ($errors as $e) { echo "<p>" . htmlspecialchars($e) . "</p>"; } ?>
+            </div>
+        <?php } ?>
 
-    <form method="post">
-        <div class="form-group">
-            <label>Nama Group</label>
-            <input type="text" name="name" required placeholder="Mis. Pemrograman Web A">
+        <div class="card">
+            <form method="post" class="section">
+                <div class="field">
+                    <label>Nama Group</label>
+                    <input type="text" name="name" required placeholder="Mis. Pemrograman Web A">
+                </div>
+                <div class="field">
+                    <label>Jenis Group</label>
+                    <select name="jenis">
+                        <option value="public">Public</option>
+                        <option value="private">Private</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Deskripsi</label>
+                    <textarea name="description" rows="3" placeholder="Keterangan singkat"></textarea>
+                </div>
+                <button type="submit" class="btn">Simpan</button>
+            </form>
         </div>
-        <div class="form-group">
-            <label>Jenis Group</label>
-            <select name="jenis">
-                <option value="public">Public</option>
-                <option value="private">Private</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Deskripsi</label>
-            <textarea name="description" rows="3" placeholder="Keterangan singkat"></textarea>
-        </div>
-        <button type="submit">Simpan</button>
-    </form>
+    </div>
 </body>
 </html>

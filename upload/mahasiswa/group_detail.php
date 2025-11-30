@@ -156,78 +156,96 @@ if ($eventsTableReady) {
 <html>
 <head>
     <title>Detail Group</title>
-    <link rel="stylesheet" href="../../asset/style.css">
-    <style>
-        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        .chip { display: inline-block; padding: 4px 8px; background:#eef; border-radius:4px; }
-    </style>
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/mahasiswa.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/group.css">
 </head>
-<body>
-    <h2>Detail Group</h2>
-    <p><a href="groups.php">Kembali</a></p>
-
-    <?php if ($info) { ?>
-        <div style="background:#e8f5e9; padding:10px; border:1px solid #c8e6c9; margin-bottom:10px;"><?= htmlspecialchars($info); ?></div>
-    <?php } ?>
-    <?php if (!empty($errors)) { ?>
-        <div style="background:#ffebee; padding:10px; border:1px solid #ffcdd2; margin-bottom:10px;">
-            <?php foreach ($errors as $e) { echo "<p>" . htmlspecialchars($e) . "</p>"; } ?>
+<body class="mahasiswa-page group-page">
+    <div class="page">
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Detail Group</h2>
+                <p class="page-subtitle">Lihat informasi grup dan event aktif.</p>
+            </div>
+            <button type="button" class="btn btn-small" onclick="location.href='groups.php'">Kembali</button>
         </div>
-    <?php } ?>
 
-    <h3><?= htmlspecialchars($groupName); ?> <span class="chip"><?= htmlspecialchars(ucfirst($groupJenis)); ?></span></h3>
-    <p><b>Kode Pendaftaran:</b> <?= htmlspecialchars($groupCode); ?></p>
-    <p><b>Dosen Pembuat:</b> <?= htmlspecialchars($group['created_by']); ?> | <b>Dibuat:</b> <?= htmlspecialchars($group['created_at']); ?></p>
-    <p><b>Deskripsi:</b> <?= htmlspecialchars($groupDesc); ?></p>
-
-    <?php if ($isMember) { ?>
-        <p><a href="group_detail.php?id=<?= $groupId; ?>&leave=1" onclick="return confirm('Keluar dari grup?')">Keluar dari grup</a></p>
-    <?php } else { ?>
-        <p>Anda belum tergabung di grup ini.</p>
-        <?php if ($groupJenis === 'public') { ?>
-            <form method="post">
-                <label>Masukkan kode pendaftaran untuk join:</label>
-                <input type="text" name="join_code" required>
-                <button type="submit">Gabung</button>
-            </form>
-        <?php } else { ?>
-            <p>Grup ini private. Hubungi dosen pembuat untuk diundang.</p>
+        <?php if ($info) { ?>
+            <div class="alert alert-success"><?= htmlspecialchars($info); ?></div>
         <?php } ?>
-    <?php } ?>
+        <?php if (!empty($errors)) { ?>
+            <div class="alert alert-danger">
+                <?php foreach ($errors as $e) { echo "<p>" . htmlspecialchars($e) . "</p>"; } ?>
+            </div>
+        <?php } ?>
 
-    <h3>Member</h3>
-    <table>
-        <tr><th>Username</th><th>Nama</th><th>Tipe</th></tr>
-        <?php if (mysqli_num_rows($members) === 0) { ?>
-            <tr><td colspan="3" style="text-align:center;">Belum ada member.</td></tr>
-        <?php } else { while($m = mysqli_fetch_assoc($members)) { ?>
-            <tr>
-                <td><?= htmlspecialchars($m['username']); ?></td>
-                <td><?= htmlspecialchars($m['nama'] ?? '-'); ?></td>
-                <td><?= htmlspecialchars($m['tipe']); ?></td>
-            </tr>
-        <?php } } ?>
-    </table>
+        <div class="card section">
+            <h3><?= htmlspecialchars($groupName); ?> <span class="badge"><?= htmlspecialchars(ucfirst($groupJenis)); ?></span></h3>
+            <p><b>Kode Pendaftaran:</b> <span class="pill"><?= htmlspecialchars($groupCode); ?></span></p>
+            <p class="muted"><b>Dosen Pembuat:</b> <?= htmlspecialchars($group['created_by']); ?> | <b>Dibuat:</b> <?= htmlspecialchars($group['created_at']); ?></p>
+            <p><b>Deskripsi:</b> <?= htmlspecialchars($groupDesc); ?></p>
 
-    <h3>Event</h3>
-    <?php if (!$eventsTableExists) { ?>
-        <p>Tabel <code>events</code>/<code>event</code> belum tersedia.</p>
-    <?php } elseif (!$eventsTableReady) { ?>
-        <p>Tabel event ditemukan tetapi kolom wajib belum dikenali. Pastikan ada kolom relasi grup (group_id/id_grup/dll) dan kolom judul (title/judul/nama).</p>
-    <?php } else { ?>
-        <table>
-            <tr><th>Judul</th><th>Jadwal</th><th>Keterangan</th></tr>
-            <?php if (empty($events)) { ?>
-                <tr><td colspan="3" style="text-align:center;">Belum ada event.</td></tr>
-            <?php } else { foreach ($events as $ev) { ?>
-                <tr>
-                    <td><?= htmlspecialchars($ev[$eventTitleCol]); ?></td>
-                    <td><?= htmlspecialchars($eventScheduleCol ? $ev[$eventScheduleCol] : ($eventCreatedCol ? $ev[$eventCreatedCol] : '')); ?></td>
-                    <td><?= htmlspecialchars($eventDetailCol ? $ev[$eventDetailCol] : ''); ?></td>
-                </tr>
-            <?php } } ?>
-        </table>
-    <?php } ?>
+            <?php if ($isMember) { ?>
+                <div class="toolbar mt-6">
+                    <button type="button" class="btn btn-danger btn-small" onclick="if(confirm('Keluar dari grup?')) location.href='group_detail.php?id=<?= $groupId; ?>&leave=1'">Keluar dari grup</button>
+                </div>
+            <?php } else { ?>
+                <p class="muted">Anda belum tergabung di grup ini.</p>
+                <?php if ($groupJenis === 'public') { ?>
+                    <form method="post" class="section mt-6">
+                        <label>Masukkan kode pendaftaran untuk join:</label>
+                        <div class="toolbar">
+                            <input type="text" name="join_code" required placeholder="Kode pendaftaran" class="max-240">
+                            <button type="submit" class="btn btn-small">Gabung</button>
+                        </div>
+                    </form>
+                <?php } else { ?>
+                    <p class="muted">Grup ini private. Hubungi dosen pembuat untuk diundang.</p>
+                <?php } ?>
+            <?php } ?>
+        </div>
+
+        <div class="card section">
+            <h3>Member</h3>
+            <div class="table-wrapper card-compact">
+                <table class="table-compact">
+                    <tr><th>Username</th><th>Nama</th><th>Tipe</th></tr>
+                    <?php if (mysqli_num_rows($members) === 0) { ?>
+                        <tr><td colspan="3" class="text-center">Belum ada member.</td></tr>
+                    <?php } else { while($m = mysqli_fetch_assoc($members)) { ?>
+                        <tr>
+                            <td><?= htmlspecialchars($m['username']); ?></td>
+                            <td><?= htmlspecialchars($m['nama'] ?? '-'); ?></td>
+                            <td><?= htmlspecialchars($m['tipe']); ?></td>
+                        </tr>
+                    <?php } } ?>
+                </table>
+            </div>
+        </div>
+
+        <div class="card section">
+            <h3>Event</h3>
+            <?php if (!$eventsTableExists) { ?>
+                <p>Tabel <code>events</code>/<code>event</code> belum tersedia.</p>
+            <?php } elseif (!$eventsTableReady) { ?>
+                <p>Tabel event ditemukan tetapi kolom wajib belum dikenali. Pastikan ada kolom relasi grup (group_id/id_grup/dll) dan kolom judul (title/judul/nama).</p>
+            <?php } else { ?>
+                <div class="table-wrapper card-compact">
+                    <table class="table-compact">
+                        <tr><th>Judul</th><th>Jadwal</th><th>Keterangan</th></tr>
+                        <?php if (empty($events)) { ?>
+                            <tr><td colspan="3" class="text-center">Belum ada event.</td></tr>
+                        <?php } else { foreach ($events as $ev) { ?>
+                            <tr>
+                                <td><?= htmlspecialchars($ev[$eventTitleCol]); ?></td>
+                                <td><?= htmlspecialchars($eventScheduleCol ? $ev[$eventScheduleCol] : ($eventCreatedCol ? $ev[$eventCreatedCol] : '')); ?></td>
+                                <td><?= htmlspecialchars($eventDetailCol ? $ev[$eventDetailCol] : ''); ?></td>
+                            </tr>
+                        <?php } } ?>
+                    </table>
+                </div>
+            <?php } ?>
+        </div>
+    </div>
 </body>
 </html>

@@ -77,22 +77,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="utf-8">
     <title>Login</title>
+    <link rel="stylesheet" href="asset/style.css">
     <link rel="stylesheet" href="asset/login.css">
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <?php if (isset($error)) echo "<p class='error'>$error</p>"; ?>
-        
-        <form method="post" action="">
-            <label>Username:</label>
-            <input type="text" name="username" required>
+    <div class="login-shell">
+        <div class="login-card">
+            <h2>Masuk ke Portal</h2>
+            <p>Kelola grup, dosen, dan mahasiswa dalam satu tempat.</p>
             
-            <label>Password:</label>
-            <input type="password" name="password" required>
-            
-            <button type="submit">Login</button>
-        </form>
+            <?php if (isset($error)) { ?>
+                <div class="error"><?= htmlspecialchars($error); ?></div>
+            <?php } ?>
+
+            <form method="post" action="">
+                <div class="field">
+                    <label>Username</label>
+                    <input type="text" name="username" placeholder="Masukkan username" required>
+                </div>
+                <div class="field">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="Masukkan password" required>
+                </div>
+                <button type="submit" class="btn btn-block">Masuk</button>
+            </form>
+        </div>
+        <div class="footer-note">Gunakan akun yang sudah terdaftar. Hubungi admin jika mengalami kendala.</div>
     </div>
 </body>
 </html>

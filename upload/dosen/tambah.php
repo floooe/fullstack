@@ -5,14 +5,13 @@ if (!isset($_SESSION['username']) || !isset($_SESSION['level']) || $_SESSION['le
     exit;
 }
 include "../../proses/koneksi.php";
-//move_uploaded_file($_FILES['foto']['tmp_name'], "../../uploads/dosen/" . $nama_file); 
+
 $mysqli = new mysqli("localhost", 'root', '', 'fullstack');
 if ($mysqli->connect_errno) {
     die("Koneksi Gagal: " . $mysqli->connect_error);
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    
     $npk = $_POST['npk'];
     $nama = $_POST['nama'];
     $akun_username = isset($_POST['akun_username']) && $_POST['akun_username'] !== '' ? $_POST['akun_username'] : $npk;
@@ -31,10 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     $check_stmt->close();
 
-    //default = null
     $foto_extension = null;
     
-    //proses up foto
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
         $foto = $_FILES['foto'];
         $foto_extension = pathinfo($foto['name'], PATHINFO_EXTENSION);
@@ -46,7 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Pastikan username akun unik
     $check_akun = $mysqli->prepare("SELECT username FROM akun WHERE username = ?");
     $check_akun->bind_param('s', $akun_username);
     $check_akun->execute();
@@ -59,10 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     $check_akun->close();
 
-    // Transaksi: simpan dosen + akun
     $mysqli->begin_transaction();
     try {
-        // cek apakah tabel dosen punya kolom akun_username
         $hasAkunCol = false;
         $colRes = $mysqli->query("SHOW COLUMNS FROM dosen");
         while ($c = $colRes->fetch_assoc()) {
@@ -108,82 +102,48 @@ $mysqli->close();
 <head>
     <meta charset="UTF-8">
     <title>Tambah Dosen</title>
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/fullstack/asset/dosen.css">
 </head>
-<body>
-    <div class="container">
-        <h2>Tambah Data Dosen</h2>
-        
-        <form action="tambah.php" method="POST" enctype="multipart/form-data">
-            <label for="npk">NPK</label>
-            <input type="text" id="npk" name="npk" required><br><br>
-            <label for="nama">Nama</label>
-            <input type="text" id="nama" name="nama" required><br><br>
-            <fieldset style="margin:15px 0; padding:10px; border:1px solid #ddd;">
-                <legend>Akun Login</legend>
-                <small>Jika dikosongkan, username otomatis pakai NPK.</small><br>
-                <label for="akun_username">Username</label>
-                <input type="text" id="akun_username" name="akun_username" placeholder="default: NPK"><br><br>
-                <label for="akun_password">Password</label>
-                <input type="password" id="akun_password" name="akun_password" required>
-            </fieldset>
-            <label for="foto">Foto</label>
-            <input type="file" id="foto" name="foto"><br><br>
-            <button type="submit">💾 Simpan</button>
-        </form>
+<body class="dosen-page">
+    <div class="page">
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Tambah Data Dosen</h2>
+                <p class="page-subtitle">Lengkapi data berikut untuk menambahkan dosen baru.</p>
+            </div>
+            <button type="button" class="btn btn-secondary btn-small" onclick="location.href='index.php'">Kembali</button>
+        </div>
 
-        <a href="index.php" class="back-link">← Kembali ke Daftar Dosen</a>
+        <div class="card">
+            <form action="tambah.php" method="POST" enctype="multipart/form-data" class="section">
+                <div class="field">
+                    <label for="npk">NPK</label>
+                    <input type="text" id="npk" name="npk" required>
+                </div>
+                <div class="field">
+                    <label for="nama">Nama</label>
+                    <input type="text" id="nama" name="nama" required>
+                </div>
+                <div class="card card-compact card-dashed">
+                    <strong>Akun Login</strong>
+                    <p class="muted">Jika dikosongkan, username otomatis pakai NPK.</p>
+                    <div class="field">
+                        <label for="akun_username">Username</label>
+                        <input type="text" id="akun_username" name="akun_username" placeholder="default: NPK">
+                    </div>
+                    <div class="field">
+                        <label for="akun_password">Password</label>
+                        <input type="password" id="akun_password" name="akun_password" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="foto">Foto</label>
+                    <input type="file" id="foto" name="foto">
+                </div>
+                <button type="submit" class="btn">Simpan</button>
+            </form>
+        </div>
     </div>
-
-    <style>
-        body{
-            font-family: Arial, sans-serif;
-            background-color: white;
-            margin: 0;
-            padding: 20px;
-        }
-        .container{
-            max-width: 500px;
-            margin: 40px auto;
-            padding: 25px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        h2{
-            text-align: center;
-            margin-bottom: 25px;
-            color: #252020ff;
-        }
-        label{
-            display: block;
-            margin-bottom: 6px;
-            font-weight: bold;
-            color: grey;
-        }
-        button{
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background-color: blue;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 15px;
-            cursor: pointer;
-            transition: background 0.2s ease-in-out;
-        }
-        button:hover{
-            background-color: blue;
-        }
-        .back-link {
-            display: inline-block;
-            margin-top: 15px;
-            text-decoration: none;
-            color: solid blue;
-        }
-        .back-link:hover {
-            text-decoration: underline;
-        }
-    </style>
 </body>
 </html>

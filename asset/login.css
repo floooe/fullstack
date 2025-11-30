@@ -1,63 +1,163 @@
+:root {
+  --primary: #2563eb;
+  --primary-strong: #1d4ed8;
+  --accent: #22d3ee;
+  --surface: #0b1220;
+  --card: #0f172a;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --border: #1e293b;
+  --shadow: 0 30px 50px rgba(7, 11, 23, 0.55);
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  background-color: lightgray;
   margin: 0;
-  padding: 0;
+  min-height: 100vh;
+  font-family: "Montserrat", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(34, 211, 238, 0.18), transparent 36%),
+    radial-gradient(circle at 78% 12%, rgba(124, 58, 237, 0.18), transparent 32%),
+    linear-gradient(135deg, #0b1220, #0b1220 40%, #0f172a 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 28px;
+  color: var(--text);
 }
 
-.login-container {
-  width: 350px;
-  margin: 100px auto;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 0 10px gray;
-  padding: 25px;
+.login-shell {
+  width: min(420px, 92%);
+  margin: 0 auto;
 }
 
-h2 {
-  text-align: center;
-  color: black;
-  margin-bottom: 20px;
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 26px 26px 22px;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 20% 20%, rgba(124, 58, 237, 0.35), transparent 30%),
+    radial-gradient(circle at 80% 15%, rgba(14, 165, 233, 0.3), transparent 26%);
+}
+
+.login-card h2 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  letter-spacing: -0.4px;
+}
+
+.login-card p {
+  margin: 0 0 16px;
+  color: var(--muted);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0;
 }
 
 label {
-  display: block;
-  margin-bottom: 6px;
-  color: darkslategray;
+  font-weight: 700;
+  color: #e5e7eb;
 }
 
 input[type="text"],
 input[type="password"] {
   width: 100%;
-  padding: 8px;
-  margin-bottom: 15px;
-  border: 1px solid gray;
-  border-radius: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #0b1220;
+  color: #f8fafc;
+  font-size: 15px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-button {
+input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
+  color: #fff;
+  background: linear-gradient(145deg, #1d4ed8, #60a5fa);
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.32);
+  transition: transform 0.12s ease, box-shadow 0.18s ease, filter 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 16px 34px rgba(37, 99, 235, 0.38);
+  filter: brightness(1.02);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.28);
+}
+
+.btn-block {
   width: 100%;
-  background-color: blue;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-button:hover {
-  background-color: navy;
-}
-
-input[type="text"]:hover,
-input[type="password"]:hover {
-  border-color: darkblue;
-}
-
-footer {
+  justify-content: center;
   text-align: center;
-  margin-top: 40px;
-  color: dimgray;
-  font-size: small;
+}
+
+.login-shell {
+  width: min(480px, 94%);
+  margin: 0 auto;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.error {
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fecdd3;
+  padding: 12px 14px;
+  border-radius: 12px;
+  margin: 12px 0;
+}
+
+.footer-note {
+  margin-top: 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
 }
