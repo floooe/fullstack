@@ -1,9 +1,13 @@
 <?php
 session_start();
+
+// wajib login
 if (!isset($_SESSION['username'])) {
     header("Location: ../../index.php");
     exit;
 }
+
+// hanya level mahasiswa
 if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'mahasiswa') {
     header("Location: ../../home.php");
     exit;
@@ -12,43 +16,74 @@ if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'mahasiswa') {
 include "../../proses/koneksi.php";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $kode = strtoupper(trim($_POST['kode'] ?? ''));
+
+    // ambil kode dari form
+    $kodeInput = trim($_POST['kode'] ?? '');
+    if ($kodeInput === '') {
+        header("Location: groups.php?error=Kode wajib diisi");
+        exit;
+    }
+
+    // samakan format: uppercase
+    $kode = strtoupper($kodeInput);
+
     $username = mysqli_real_escape_string($conn, $_SESSION['username']);
+    $kodeEsc  = mysqli_real_escape_string($conn, $kode);
 
-    if ($kode === '') {
-        die("Kode wajib diisi");
+    // CARI GRUP BERDASARKAN KODE
+    // TRIM + UPPER untuk jaga-jaga kalau di DB ada spasi / beda kapital
+    $sqlGrup = "
+        SELECT *
+        FROM grup
+        WHERE TRIM(UPPER(kode_pendaftaran)) = '$kodeEsc'
+        LIMIT 1
+    ";
+    $qGrup = mysqli_query($conn, $sqlGrup);
+
+    if (!$qGrup || mysqli_num_rows($qGrup) == 0) {
+        // tidak ada grup dengan kode tsb
+        header("Location: groups.php?error=Kode salah atau grup tidak ditemukan");
+        exit;
     }
 
-    $kodeEsc = mysqli_real_escape_string($conn, $kode);
-    $q = mysqli_query($conn,
-        "SELECT * FROM groups WHERE name LIKE '%| $kodeEsc'"
-    );
+    $grup = mysqli_fetch_assoc($qGrup);
 
-    if (mysqli_num_rows($q) == 0) {
-        die("Kode salah atau grup tidak ditemukan");
+    // CEK JENIS GRUP: hanya boleh join kalau publik
+    $jenis = strtolower(trim($grup['jenis'] ?? ''));
+
+    // anggap default-nya publik kalau kosong
+    if ($jenis === 'privat') {
+        header("Location: groups.php?error=Grup ini privat. Tidak bisa join dengan kode.");
+        exit;
     }
 
-    $row = mysqli_fetch_assoc($q);
-    // cek jenis public
-    $jenis = (strpos($row['description'], '[public]') === 0) ? 'public' : 'private';
-    if ($jenis !== 'public') {
-        die("Grup ini private. Tidak bisa join dengan kode.");
+    $group_id = (int)$grup['idgrup'];
+
+    // CEK SUDAH JADI MEMBER BELUM
+    $sqlCek = "
+        SELECT 1 
+        FROM member_grup 
+        WHERE idgrup = $group_id 
+          AND username = '$username'
+        LIMIT 1
+    ";
+    $qCek = mysqli_query($conn, $sqlCek);
+    $sudah = $qCek && mysqli_num_rows($qCek) > 0;
+
+    if (!$sudah) {
+        // INSERT MEMBER BARU (tanpa tanggal_gabung)
+        $sqlInsert = "
+        INSERT INTO member_grup (idgrup, username)
+        VALUES ($group_id, '$username')
+        ";
+        mysqli_query($conn, $sqlInsert);
     }
 
-    $group_id = $row['id'];
 
-    // hindari double join
-    $exists = mysqli_num_rows(mysqli_query($conn,
-        "SELECT 1 FROM group_members WHERE group_id='$group_id' AND username='$username'"
-    ));
-    if ($exists == 0) {
-        mysqli_query($conn,
-            "INSERT INTO group_members(group_id, username, joined_at)
-             VALUES ('$group_id', '$username', NOW())"
-        );
-    }
-
+    // balik ke halaman groups mahasiswa dengan pesan sukses
     header("Location: groups.php?joined=1");
     exit;
 }
-?>
+
+header("Location: groups.php");
+exit;
