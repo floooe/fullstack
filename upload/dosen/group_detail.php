@@ -28,7 +28,7 @@ if ($groupId <= 0) {
     exit;
 }
 
-$group = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM groups WHERE id=$groupId"));
+$group = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM grup WHERE idgrup=$groupId"));
 if (!$group) {
     header("Location: groups.php?msg=Grup tidak ditemukan");
     exit;
@@ -52,8 +52,8 @@ function parse_group($name, $description) {
     return [$title, $code, $jenis, $desc];
 }
 
-list($groupName, $groupCode, $groupJenis, $groupDesc) = parse_group($group['name'], $group['description']);
-$isCreator = $group['created_by'] === $_SESSION['username'];
+list($groupName, $groupCode, $groupJenis, $groupDesc) = parse_group($group['nama'], $group['deskripsi']);
+$isCreator = $group['username_pembuat'] === $_SESSION['username'];
 
 $info = isset($_GET['msg']) ? $_GET['msg'] : null;
 $errors = [];
@@ -299,21 +299,21 @@ if ($isCreator && $eventsTableReady && isset($_GET['delete_event'])) {
     exit;
 }
 
-// DATA
 $members = mysqli_query($conn, "
-    SELECT gm.id, gm.username,
+    SELECT mg.username,
            COALESCE(d.nama, m.nama) AS nama,
            CASE 
                 WHEN d.npk IS NOT NULL THEN 'Dosen'
                 WHEN m.nrp IS NOT NULL THEN 'Mahasiswa'
                 ELSE 'User'
            END AS tipe
-    FROM group_members gm
-    LEFT JOIN dosen d ON d.npk = gm.username
-    LEFT JOIN mahasiswa m ON m.nrp = gm.username
-    WHERE gm.group_id=$groupId
+    FROM member_grup mg
+    LEFT JOIN dosen d ON d.npk = mg.username
+    LEFT JOIN mahasiswa m ON m.nrp = mg.username
+    WHERE mg.idgrup=$groupId
     ORDER BY tipe, nama
 ");
+
 
 $memberUsernames = [];
 $memberList = [];
@@ -380,13 +380,33 @@ if ($eventsTableReady) {
             <button type="button" class="btn btn-small" onclick="location.href='groups.php'">Kembali ke Group Saya</button>
         </div>
 
-        <?php if ($info) { ?>
-            <div class="alert alert-success"><?= htmlspecialchars($info); ?></div>
-        <?php } ?>
-        <?php if (!empty($errors)) { ?>
-            <div class="alert alert-danger">
-                <?php foreach ($errors as $e) { echo "<p>" . htmlspecialchars($e) . "</p>"; } ?>
-            </div>
+    <div class="section">
+        <h3><?= htmlspecialchars($groupName); ?> <span class="chip"><?= htmlspecialchars(ucfirst($groupJenis)); ?></span></h3>
+        <p><b>Kode Pendaftaran:</b> <span style="font-size:1.1em;"><?= htmlspecialchars($groupCode); ?></span></p>
+        <p><b>Dibuat oleh:</b> <?= htmlspecialchars($group['username_pembuat']); ?> | <b>Tanggal:</b> <?= htmlspecialchars($group['tanggal_pembentukan']); ?></p>
+        <p><b>Deskripsi:</b> <?= htmlspecialchars($groupDesc); ?></p>
+
+        <?php if ($isCreator) { ?>
+            <h4>Ubah Informasi Grup</h4>
+            <form method="post">
+                <input type="hidden" name="action" value="update_group">
+                <div>
+                    <label>Nama</label>
+                    <input type="text" name="name" value="<?= htmlspecialchars($groupName); ?>" required>
+                </div>
+                <div>
+                    <label>Jenis</label>
+                    <select name="jenis">
+                        <option value="public" <?= $groupJenis === 'public' ? 'selected' : ''; ?>>Public</option>
+                        <option value="private" <?= $groupJenis === 'private' ? 'selected' : ''; ?>>Private</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Deskripsi</label>
+                    <textarea name="description" rows="3"><?= htmlspecialchars($groupDesc); ?></textarea>
+                </div>
+                <button type="submit">Simpan Perubahan</button>
+            </form>
         <?php } ?>
 
         <div class="card section">
