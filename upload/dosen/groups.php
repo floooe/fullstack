@@ -17,57 +17,84 @@ $success = isset($_GET['success']);
 $createdCode = $_GET['kode'] ?? null;
 $message = isset($_GET['msg']) ? $_GET['msg'] : null;
 
-function detect_events_table_and_group_col($conn) {
-    $table = null;
-    if (mysqli_num_rows(mysqli_query($conn, "SHOW TABLES LIKE 'events'")) > 0) {
-        $table = 'events';
-    } elseif (mysqli_num_rows(mysqli_query($conn, "SHOW TABLES LIKE 'event'")) > 0) {
-        $table = 'event';
-    }
-    if (!$table) return [null, null];
-
-    $groupCol = null;
-    $colsRes = mysqli_query($conn, "SHOW COLUMNS FROM {$table}");
-    $cols = [];
-    while ($c = mysqli_fetch_assoc($colsRes)) {
-        $cols[] = $c['Field'];
-    }
-    foreach (['group_id', 'id_grup', 'idgrup', 'groupid'] as $candidate) {
-        if (in_array($candidate, $cols, true)) {
-            $groupCol = $candidate;
-            break;
+// deteksi tabel event (support events/event) dan kolom relasi grup
+function detect_event_tables($conn) {
+    $tables = [];
+    foreach (['events', 'event'] as $candidate) {
+        $res = mysqli_query($conn, "SHOW TABLES LIKE '{$candidate}'");
+        if (!$res || mysqli_num_rows($res) === 0) {
+            continue;
         }
-    }
-    if (!$groupCol) {
-        foreach ($cols as $c) {
-            if (stripos($c, 'grup') !== false || stripos($c, 'group') !== false) {
-                $groupCol = $c;
+        $colsRes = mysqli_query($conn, "SHOW COLUMNS FROM {$candidate}");
+        if (!$colsRes) {
+            $tables[] = ['table' => $candidate, 'group_col' => null];
+            continue;
+        }
+        $cols = [];
+        while ($c = mysqli_fetch_assoc($colsRes)) {
+            $cols[] = $c['Field'];
+        }
+        $groupCol = null;
+        foreach (['group_id', 'id_grup', 'idgrup', 'groupid'] as $colCandidate) {
+            if (in_array($colCandidate, $cols, true)) {
+                $groupCol = $colCandidate;
                 break;
             }
         }
+        if (!$groupCol) {
+            foreach ($cols as $c) {
+                if (stripos($c, 'grup') !== false || stripos($c, 'group') !== false) {
+                    $groupCol = $c;
+                    break;
+                }
+            }
+        }
+        $tables[] = ['table' => $candidate, 'group_col' => $groupCol];
     }
-    return [$table, $groupCol];
+    return $tables;
 }
 
-$eventsTable = null;
-$eventsGroupCol = null;
-list($eventsTable, $eventsGroupCol) = detect_events_table_and_group_col($conn);
+$eventTables = detect_event_tables($conn);
 
-// deteksi kolom relasi di member_grup (group_id atau idgrup)
-function detect_member_group_col($conn) {
-    $col = null;
-    $res = mysqli_query($conn, "SHOW COLUMNS FROM member_grup");
-    if ($res) {
-        while ($c = mysqli_fetch_assoc($res)) {
-            if (in_array($c['Field'], ['group_id', 'idgrup', 'id_grup'], true)) {
-                $col = $c['Field'];
+// deteksi tabel member yang berisi relasi ke grup
+function detect_member_group_relations($conn) {
+    $relations = [];
+    $memberTables = ['member_grup', 'group_members'];
+    foreach ($memberTables as $table) {
+        $res = mysqli_query($conn, "SHOW TABLES LIKE '{$table}'");
+        if (!$res || mysqli_num_rows($res) === 0) {
+            continue;
+        }
+        $colsRes = mysqli_query($conn, "SHOW COLUMNS FROM {$table}");
+        if (!$colsRes) {
+            $relations[] = ['table' => $table, 'group_col' => null];
+            continue;
+        }
+        $cols = [];
+        while ($c = mysqli_fetch_assoc($colsRes)) {
+            $cols[] = $c['Field'];
+        }
+        $groupCol = null;
+        foreach (['group_id', 'idgrup', 'id_grup', 'groupid'] as $colCandidate) {
+            if (in_array($colCandidate, $cols, true)) {
+                $groupCol = $colCandidate;
                 break;
             }
         }
+        if (!$groupCol) {
+            foreach ($cols as $c) {
+                if (stripos($c, 'grup') !== false || stripos($c, 'group') !== false) {
+                    $groupCol = $c;
+                    break;
+                }
+            }
+        }
+        $relations[] = ['table' => $table, 'group_col' => $groupCol];
     }
-    return $col;
+    return $relations;
 }
-$memberGroupCol = detect_member_group_col($conn);
+
+$memberRelations = detect_member_group_relations($conn);
 
 // Hapus grup milik sendiri
 if (isset($_GET['delete'])) {
@@ -75,11 +102,17 @@ if (isset($_GET['delete'])) {
     $own = mysqli_fetch_assoc(mysqli_query($conn, "SELECT username_pembuat FROM grup WHERE idgrup=$delId"));
     if ($own && $own['username_pembuat'] === $_SESSION['username']) {
         // bersihkan member & event bila ada
-        if ($memberGroupCol) {
-            mysqli_query($conn, "DELETE FROM member_grup WHERE {$memberGroupCol}=$delId");
+        foreach ($memberRelations as $relation) {
+            if (empty($relation['group_col'])) {
+                continue;
+            }
+            mysqli_query($conn, "DELETE FROM {$relation['table']} WHERE {$relation['group_col']}=$delId");
         }
-        if ($eventsTable && $eventsGroupCol) {
-            mysqli_query($conn, "DELETE FROM {$eventsTable} WHERE {$eventsGroupCol}=$delId");
+        foreach ($eventTables as $eventInfo) {
+            if (empty($eventInfo['group_col'])) {
+                continue;
+            }
+            mysqli_query($conn, "DELETE FROM {$eventInfo['table']} WHERE {$eventInfo['group_col']}=$delId");
         }
         mysqli_query($conn, "DELETE FROM grup WHERE idgrup=$delId");
         header("Location: groups.php?msg=Grup berhasil dihapus");
