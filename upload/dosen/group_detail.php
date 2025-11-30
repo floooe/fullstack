@@ -28,7 +28,7 @@ if ($groupId <= 0) {
     exit;
 }
 
-$group = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM groups WHERE id=$groupId"));
+$group = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM grup WHERE idgrup=$groupId"));
 if (!$group) {
     header("Location: groups.php?msg=Grup tidak ditemukan");
     exit;
@@ -52,8 +52,8 @@ function parse_group($name, $description) {
     return [$title, $code, $jenis, $desc];
 }
 
-list($groupName, $groupCode, $groupJenis, $groupDesc) = parse_group($group['name'], $group['description']);
-$isCreator = $group['created_by'] === $_SESSION['username'];
+list($groupName, $groupCode, $groupJenis, $groupDesc) = parse_group($group['nama'], $group['deskripsi']);
+$isCreator = $group['username_pembuat'] === $_SESSION['username'];
 
 $info = isset($_GET['msg']) ? $_GET['msg'] : null;
 $errors = [];
@@ -299,21 +299,21 @@ if ($isCreator && $eventsTableReady && isset($_GET['delete_event'])) {
     exit;
 }
 
-// DATA
 $members = mysqli_query($conn, "
-    SELECT gm.id, gm.username,
+    SELECT mg.username,
            COALESCE(d.nama, m.nama) AS nama,
            CASE 
                 WHEN d.npk IS NOT NULL THEN 'Dosen'
                 WHEN m.nrp IS NOT NULL THEN 'Mahasiswa'
                 ELSE 'User'
            END AS tipe
-    FROM group_members gm
-    LEFT JOIN dosen d ON d.npk = gm.username
-    LEFT JOIN mahasiswa m ON m.nrp = gm.username
-    WHERE gm.group_id=$groupId
+    FROM member_grup mg
+    LEFT JOIN dosen d ON d.npk = mg.username
+    LEFT JOIN mahasiswa m ON m.nrp = mg.username
+    WHERE mg.idgrup=$groupId
     ORDER BY tipe, nama
 ");
+
 
 $memberUsernames = [];
 $memberList = [];
@@ -390,7 +390,7 @@ if ($eventsTableReady) {
     <div class="section">
         <h3><?= htmlspecialchars($groupName); ?> <span class="chip"><?= htmlspecialchars(ucfirst($groupJenis)); ?></span></h3>
         <p><b>Kode Pendaftaran:</b> <span style="font-size:1.1em;"><?= htmlspecialchars($groupCode); ?></span></p>
-        <p><b>Dibuat oleh:</b> <?= htmlspecialchars($group['created_by']); ?> | <b>Tanggal:</b> <?= htmlspecialchars($group['created_at']); ?></p>
+        <p><b>Dibuat oleh:</b> <?= htmlspecialchars($group['username_pembuat']); ?> | <b>Tanggal:</b> <?= htmlspecialchars($group['tanggal_pembentukan']); ?></p>
         <p><b>Deskripsi:</b> <?= htmlspecialchars($groupDesc); ?></p>
 
         <?php if ($isCreator) { ?>
