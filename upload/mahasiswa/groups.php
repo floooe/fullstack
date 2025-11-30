@@ -84,21 +84,126 @@ $public = mysqli_query($conn, "
 <html>
 <head>
     <title>Group Saya</title>
-    <link rel="stylesheet" href="../../asset/style.css">
+
     <style>
-        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2, h3, h4 {
+            margin-bottom: 10px;
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            margin-top: 25px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+        }
+
+        a {
+            color: #2980b9;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .info-box {
+            background: #e8f5e9;
+            padding: 12px;
+            border-left: 5px solid #4caf50;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .error-box {
+            background: #ffebee;
+            padding: 12px;
+            border-left: 5px solid #f44336;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: #3498db;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        td {
+            background: #ffffff;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover td {
+            background: #f1faff;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #217dbb;
+        }
+
+        input[type="text"] {
+            padding: 10px 12px;
+            width: 250px;
+            border-radius: 6px;
+            border: 1px solid #bbb;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 15px;
+            background: #ddd;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+        .back-link:hover {
+            background: #ccc;
+        }
+
     </style>
 </head>
 <body>
+
     <h2>Group Saya (Mahasiswa)</h2>
-    <p><a href="../../home.php">Kembali</a></p>
+    <p><a href="../../home.php" class="back-link">Kembali</a></p>
 
     <?php if ($info) { ?>
-        <div style="background:#e8f5e9; padding:10px; border:1px solid #c8e6c9; margin-bottom:10px;"><?= htmlspecialchars($info); ?></div>
+        <div class="info-box"><?= htmlspecialchars($info); ?></div>
     <?php } ?>
+
     <?php if (!empty($errors)) { ?>
-        <div style="background:#ffebee; padding:10px; border:1px solid #ffcdd2; margin-bottom:10px;">
+        <div class="error-box">
             <?php foreach ($errors as $e) { echo "<p>" . htmlspecialchars($e) . "</p>"; } ?>
         </div>
     <?php } ?>
@@ -149,5 +254,6 @@ $public = mysqli_query($conn, "
             <?php } } ?>
         </table>
     </div>
+
 </body>
 </html>
