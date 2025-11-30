@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama = trim($_POST['name'] ?? '');
     $jenis = ($_POST['jenis'] ?? 'public') === 'private' ? 'Private' : 'Public';
     $created_by = mysqli_real_escape_string($conn, $_SESSION['username']);
+    $deskripsi = mysqli_real_escape_string($conn, trim($_POST['description'] ?? ''));
 
     if ($nama === '') {
         $errors[] = "Nama grup wajib diisi.";
@@ -33,11 +34,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nama_final = mysqli_real_escape_string($conn, $nama);
 
         // UNTUK DATABASE SESUAI STRUKTUR
-        $sql = "INSERT INTO grup (username_pembuat, nama, jenis, kode_pendaftaran, tanggal_pembentukan)
-                VALUES ('$created_by', '$nama_final', '$jenis', '$kode', NOW())";
+        $sql = "INSERT INTO grup (username_pembuat, nama, jenis, kode_pendaftaran, tanggal_pembentukan, deskripsi)
+                VALUES ('$created_by', '$nama_final', '$jenis', '$kode', NOW(), '$deskripsi')";
 
         if (mysqli_query($conn, $sql)) {
-            header("Location: groups.php?success=1&kode=$kode");
+            $newId = mysqli_insert_id($conn);
+            header("Location: group_detail.php?id=$newId&msg=Grup berhasil dibuat");
             exit;
         } else {
             $errors[] = "Gagal menyimpan grup: " . mysqli_error($conn);
@@ -86,6 +88,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label>Deskripsi</label>
                     <textarea name="description" rows="3" placeholder="Keterangan singkat"></textarea>
                 </div>
+                <p class="muted">Tanggal pembuatan dicatat otomatis: <?= date('Y-m-d H:i'); ?> (waktu server).</p>
+                <p class="muted">Kode pendaftaran dibuat otomatis dan bisa dilihat di halaman detail grup setelah tersimpan.</p>
                 <button type="submit" class="btn">Simpan</button>
             </form>
         </div>

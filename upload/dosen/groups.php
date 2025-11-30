@@ -50,7 +50,10 @@ function detect_events_table_and_group_col($conn) {
 }
 
 // helper to read jenis
-function parseJenis($description) {
+function parseJenis($description, $jenisCol = null) {
+    if (!empty($jenisCol)) {
+        return ucfirst(strtolower($jenisCol));
+    }
     return stripos($description, '[public]') === 0 ? 'Public' : 'Private';
 }
 
@@ -58,17 +61,35 @@ $eventsTable = null;
 $eventsGroupCol = null;
 list($eventsTable, $eventsGroupCol) = detect_events_table_and_group_col($conn);
 
+// deteksi kolom relasi di member_grup (group_id atau idgrup)
+function detect_member_group_col($conn) {
+    $col = null;
+    $res = mysqli_query($conn, "SHOW COLUMNS FROM member_grup");
+    if ($res) {
+        while ($c = mysqli_fetch_assoc($res)) {
+            if (in_array($c['Field'], ['group_id', 'idgrup', 'id_grup'], true)) {
+                $col = $c['Field'];
+                break;
+            }
+        }
+    }
+    return $col;
+}
+$memberGroupCol = detect_member_group_col($conn);
+
 // Hapus grup milik sendiri
 if (isset($_GET['delete'])) {
     $delId = (int)$_GET['delete'];
-    $own = mysqli_fetch_assoc(mysqli_query($conn, "SELECT created_by FROM groups WHERE id=$delId"));
-    if ($own && $own['created_by'] === $_SESSION['username']) {
+    $own = mysqli_fetch_assoc(mysqli_query($conn, "SELECT username_pembuat FROM grup WHERE idgrup=$delId"));
+    if ($own && $own['username_pembuat'] === $_SESSION['username']) {
         // bersihkan member & event bila ada
-        mysqli_query($conn, "DELETE FROM member_grup WHERE group_id=$delId");
+        if ($memberGroupCol) {
+            mysqli_query($conn, "DELETE FROM member_grup WHERE {$memberGroupCol}=$delId");
+        }
         if ($eventsTable && $eventsGroupCol) {
             mysqli_query($conn, "DELETE FROM {$eventsTable} WHERE {$eventsGroupCol}=$delId");
         }
-        mysqli_query($conn, "DELETE FROM groups WHERE id=$delId");
+        mysqli_query($conn, "DELETE FROM grup WHERE idgrup=$delId");
         header("Location: groups.php?msg=Grup berhasil dihapus");
         exit;
     } else {
@@ -125,10 +146,9 @@ $q = mysqli_query($conn, "SELECT * FROM grup WHERE username_pembuat='$username' 
                     <tr><td colspan="5" class="text-center">Belum ada grup yang Anda buat.</td></tr>
                 <?php } else { 
                     while($row = mysqli_fetch_assoc($q)){
-                        $parts = explode(" | ", $row['nama']);
-                        $nama = $parts[0];
-                        $kode = $parts[1] ?? '-';
-                        $jenis = parseJenis($row['deskripsi']);
+                        $nama = $row['nama'];
+                        $kode = $row['kode_pendaftaran'] ?? '-';
+                        $jenis = parseJenis($row['deskripsi'], $row['jenis'] ?? null);
                 ?>
                     <tr>
                         <td><?= htmlspecialchars($nama); ?></td>

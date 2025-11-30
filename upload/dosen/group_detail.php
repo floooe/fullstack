@@ -34,26 +34,20 @@ if (!$group) {
     exit;
 }
 
-// Parse name, code, jenis, desc
-function parse_group($name, $description) {
-    $parts = explode(" | ", $name);
-    $title = $parts[0];
-    $code = $parts[1] ?? '';
-
-    $jenis = 'public';
-    $desc = $description;
-    if (strpos($description, '[') === 0) {
-        $end = strpos($description, ']');
-        if ($end !== false) {
-            $jenis = strtolower(substr($description, 1, $end - 1));
-            $desc = trim(substr($description, $end + 1));
-        }
-    }
-    return [$title, $code, $jenis, $desc];
+// Parse fields
+$groupName = $group['nama'];
+$groupCode = $group['kode_pendaftaran'] ?? '';
+// jenis ambil kolom, fallback dari deskripsi prefix
+$groupJenis = !empty($group['jenis']) ? strtolower($group['jenis']) : 'public';
+if (strpos($group['deskripsi'], '[public]') === 0) {
+    $groupJenis = 'public';
+} elseif (strpos($group['deskripsi'], '[private]') === 0) {
+    $groupJenis = 'private';
 }
-
-list($groupName, $groupCode, $groupJenis, $groupDesc) = parse_group($group['nama'], $group['deskripsi']);
+$groupDesc = $group['deskripsi'];
 $isCreator = $group['username_pembuat'] === $_SESSION['username'];
+$createdBy = $group['username_pembuat'] ?? ($group['created_by'] ?? '-');
+$createdAt = $group['tanggal_pembentukan'] ?? ($group['created_at'] ?? '-');
 
 $info = isset($_GET['msg']) ? $_GET['msg'] : null;
 $errors = [];
@@ -380,39 +374,10 @@ if ($eventsTableReady) {
             <button type="button" class="btn btn-small" onclick="location.href='groups.php'">Kembali ke Group Saya</button>
         </div>
 
-    <div class="section">
-        <h3><?= htmlspecialchars($groupName); ?> <span class="chip"><?= htmlspecialchars(ucfirst($groupJenis)); ?></span></h3>
-        <p><b>Kode Pendaftaran:</b> <span style="font-size:1.1em;"><?= htmlspecialchars($groupCode); ?></span></p>
-        <p><b>Dibuat oleh:</b> <?= htmlspecialchars($group['username_pembuat']); ?> | <b>Tanggal:</b> <?= htmlspecialchars($group['tanggal_pembentukan']); ?></p>
-        <p><b>Deskripsi:</b> <?= htmlspecialchars($groupDesc); ?></p>
-
-        <?php if ($isCreator) { ?>
-            <h4>Ubah Informasi Grup</h4>
-            <form method="post">
-                <input type="hidden" name="action" value="update_group">
-                <div>
-                    <label>Nama</label>
-                    <input type="text" name="name" value="<?= htmlspecialchars($groupName); ?>" required>
-                </div>
-                <div>
-                    <label>Jenis</label>
-                    <select name="jenis">
-                        <option value="public" <?= $groupJenis === 'public' ? 'selected' : ''; ?>>Public</option>
-                        <option value="private" <?= $groupJenis === 'private' ? 'selected' : ''; ?>>Private</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Deskripsi</label>
-                    <textarea name="description" rows="3"><?= htmlspecialchars($groupDesc); ?></textarea>
-                </div>
-                <button type="submit">Simpan Perubahan</button>
-            </form>
-        <?php } ?>
-
         <div class="card section">
             <h3><?= htmlspecialchars($groupName); ?> <span class="badge"><?= htmlspecialchars(ucfirst($groupJenis)); ?></span></h3>
             <p><b>Kode Pendaftaran:</b> <span class="pill"><?= htmlspecialchars($groupCode); ?></span></p>
-            <p class="muted"><b>Dibuat oleh:</b> <?= htmlspecialchars($group['created_by']); ?> | <b>Tanggal:</b> <?= htmlspecialchars($group['created_at']); ?></p>
+            <p class="muted"><b>Dibuat oleh:</b> <?= htmlspecialchars($createdBy); ?> | <b>Tanggal:</b> <?= htmlspecialchars($createdAt); ?></p>
             <p><b>Deskripsi:</b> <?= htmlspecialchars($groupDesc); ?></p>
 
             <?php if ($isCreator) { ?>

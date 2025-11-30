@@ -40,6 +40,12 @@ $pages = max(1, (int)ceil($total / $limit));
             </div>
         </div>
 
+        <?php if (isset($_GET['msg'])) { ?>
+            <div class="alert alert-success">
+                <?= htmlspecialchars($_GET['msg']); ?>
+            </div>
+        <?php } ?>
+
         <div class="table-wrapper card-compact">
             <table>
                 <tr>

@@ -54,6 +54,12 @@ $result = $stmt->get_result();
         </div>
     </div>
 
+    <?php if (isset($_GET['msg'])) { ?>
+        <div class="alert alert-success">
+            <?= htmlspecialchars($_GET['msg']); ?>
+        </div>
+    <?php } ?>
+
     <div class="table-wrapper card-compact">
         <table class="table-compact">
             <tr>
