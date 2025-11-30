@@ -11,15 +11,6 @@ if ($_SESSION['level'] !== 'mahasiswa') {
 
 include "../../proses/koneksi.php";
 
-function parse_group($name, $description)
-{
-    $parts = explode(" | ", $name);
-    $title = $parts[0];
-    $code = $parts[1] ?? '';
-    $jenis = (strpos($description, '[private]') === 0) ? 'private' : 'public';
-    return [$title, $code, $jenis];
-}
-
 $username = mysqli_real_escape_string($conn, $_SESSION['username']);
 $info = isset($_GET['msg']) ? $_GET['msg'] : null;
 $errors = [];
@@ -38,13 +29,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['join_code'])) {
         $errors[] = "Kode wajib diisi.";
     } else {
         $kodeEsc = mysqli_real_escape_string($conn, $kode);
-        $q = mysqli_query($conn, "SELECT * FROM groups WHERE name LIKE '%| $kodeEsc'");
+        $q = mysqli_query($conn, "SELECT * FROM grup WHERE kode_pendaftaran='$kodeEsc'");
 
         if (mysqli_num_rows($q) === 0) {
             $errors[] = "Kode tidak ditemukan.";
         } else {
             $g = mysqli_fetch_assoc($q);
-            list($gn, $gc, $gj) = parse_group($g['name'], $g['description']);
+            $gn = $g['nama'];
+            $gc = $g['kode_pendaftaran'];
+            $gj = strtolower($g['jenis'] ?? 'public');
 
             if ($gj !== 'public') {
                 $errors[] = "Grup ini private. Tidak bisa join dengan kode.";
@@ -52,13 +45,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['join_code'])) {
 
                 $already = mysqli_num_rows(mysqli_query(
                     $conn,
-                    "SELECT 1 FROM member_grup WHERE idgrup={$g['id']} AND username='$username'"
+                    "SELECT 1 FROM member_grup WHERE idgrup={$g['idgrup']} AND username='$username'"
                 ));
 
                 if ($already > 0) {
                     $errors[] = "Anda sudah tergabung di grup ini.";
                 } else {
-                    mysqli_query($conn, "INSERT INTO member_grup(idgrup, username) VALUES ({$g['id']}, '$username')");
+                    mysqli_query($conn, "INSERT INTO member_grup(idgrup, username) VALUES ({$g['idgrup']}, '$username')");
                     header("Location: groups.php?msg=Berhasil bergabung ke grup $gn");
                     exit;
                 }
@@ -129,15 +122,17 @@ $public = mysqli_query($conn, "
                         </tr>
                     <?php else:
                         while ($g = mysqli_fetch_assoc($joined)):
-                            list($gn, $gc, $gj) = parse_group($g['name'], $g['description']);
+                            $gn = $g['nama'];
+                            $gc = $g['kode_pendaftaran'] ?? '-';
+                            $gj = $g['jenis'] ?? 'Public';
                             ?>
                             <tr>
                                 <td><?= htmlspecialchars($gn); ?> (<?= htmlspecialchars($gj); ?>)</td>
                                 <td><b><?= htmlspecialchars($gc); ?></b></td>
                                 <td>
                                     <div class="toolbar">
-                                        <button type="button" class="btn btn-small" onclick="location.href='group_detail.php?id=<?= $g['id']; ?>'">Detail</button>
-                                        <button type="button" class="btn btn-danger btn-small" onclick="if(confirm('Keluar dari grup ini?')) location.href='?leave=<?= $g['id']; ?>'">Keluar</button>
+                                        <button type="button" class="btn btn-small" onclick="location.href='group_detail.php?id=<?= $g['idgrup']; ?>'">Detail</button>
+                                        <button type="button" class="btn btn-danger btn-small" onclick="if(confirm('Keluar dari grup ini?')) location.href='?leave=<?= $g['idgrup']; ?>'">Keluar</button>
                                     </div>
                                 </td>
                             </tr>
@@ -167,13 +162,14 @@ $public = mysqli_query($conn, "
                         </tr>
                     <?php else:
                         while ($p = mysqli_fetch_assoc($public)):
-                            list($pn, $pc, $pj) = parse_group($p['name'], $p['description']);
+                            $pn = $p['nama'];
+                            $pc = $p['kode_pendaftaran'] ?? '-';
                             ?>
                             <tr>
                                 <td><?= htmlspecialchars($pn); ?></td>
                                 <td><b><?= htmlspecialchars($pc); ?></b></td>
-                                <td><?= htmlspecialchars($p['created_by']); ?></td>
-                                <td><button type="button" class="btn btn-small" onclick="location.href='group_detail.php?id=<?= $p['id']; ?>'">Lihat</button></td>
+                                <td><?= htmlspecialchars($p['username_pembuat'] ?? '-'); ?></td>
+                                <td><button type="button" class="btn btn-small" onclick="location.href='group_detail.php?id=<?= $p['idgrup']; ?>'">Lihat</button></td>
                             </tr>
                         <?php endwhile; endif; ?>
                 </table>

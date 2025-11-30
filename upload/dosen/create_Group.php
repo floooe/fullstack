@@ -14,10 +14,38 @@ include "../../proses/koneksi.php";
 
 $errors = [];
 
+// Deteksi casing enum kolom jenis (lower/title) agar penyimpanan cocok dengan DB
+function detect_jenis_case($conn, $table = 'grup') {
+    $res = mysqli_query($conn, "SHOW COLUMNS FROM {$table} LIKE 'jenis'");
+    if ($res && mysqli_num_rows($res) > 0) {
+        $row = mysqli_fetch_assoc($res);
+        if (!empty($row['Type']) && stripos($row['Type'], 'enum(') === 0) {
+            if (stripos($row['Type'], "'Public'") !== false) {
+                return 'title'; // Enum memakai Public/Private
+            }
+            if (stripos($row['Type'], "'public'") !== false) {
+                return 'lower'; // Enum memakai public/private
+            }
+        }
+    }
+    return 'lower';
+}
+$jenisCase = detect_jenis_case($conn, 'grup');
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $nama = trim($_POST['name'] ?? '');
-    $jenis = ($_POST['jenis'] ?? 'public') === 'private' ? 'Private' : 'Public';
+    // Validasi jenis; jangan paksa default public
+    $jenisInput = strtolower(trim($_POST['jenis'] ?? ''));
+    if (!in_array($jenisInput, ['public', 'private'], true)) {
+        $errors[] = "Pilih jenis grup (Public/Private).";
+    }
+    // Sesuaikan casing dengan enum di DB
+    if ($jenisCase === 'title') {
+        $jenis = $jenisInput === 'private' ? 'Private' : 'Public';
+    } else {
+        $jenis = $jenisInput;
+    }
     $created_by = mysqli_real_escape_string($conn, $_SESSION['username']);
     $deskripsi = mysqli_real_escape_string($conn, trim($_POST['description'] ?? ''));
 
@@ -77,11 +105,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label>Nama Group</label>
                     <input type="text" name="name" required placeholder="Mis. Pemrograman Web A">
                 </div>
+                <?php $oldJenis = strtolower($_POST['jenis'] ?? ''); ?>
                 <div class="field">
                     <label>Jenis Group</label>
-                    <select name="jenis">
-                        <option value="public">Public</option>
-                        <option value="private">Private</option>
+                    <select name="jenis" required>
+                        <option value="" disabled <?= $oldJenis === '' ? 'selected' : ''; ?>>-- Pilih jenis --</option>
+                        <option value="public" <?= $oldJenis === 'public' ? 'selected' : ''; ?>>Public</option>
+                        <option value="private" <?= $oldJenis === 'private' ? 'selected' : ''; ?>>Private</option>
                     </select>
                 </div>
                 <div class="field">

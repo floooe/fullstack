@@ -27,38 +27,25 @@ function detect_events_table($conn) {
     return null;
 }
 
-function parse_group($name, $description) {
-    $parts = explode(" | ", $name);
-    $title = $parts[0];
-    $code = $parts[1] ?? '';
-    $jenis = 'public';
-    $desc = $description;
-    if (strpos($description, '[') === 0) {
-        $end = strpos($description, ']');
-        if ($end !== false) {
-            $jenis = strtolower(substr($description, 1, $end - 1));
-            $desc = trim(substr($description, $end + 1));
-        }
-    }
-    return [$title, $code, $jenis, $desc];
-}
-
-$group = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM groups WHERE id=$groupId"));
+$group = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM grup WHERE idgrup=$groupId"));
 if (!$group) {
     header("Location: groups.php?msg=Grup tidak ditemukan");
     exit;
 }
 
-list($groupName, $groupCode, $groupJenis, $groupDesc) = parse_group($group['name'], $group['description']);
+$groupName = $group['nama'];
+$groupCode = $group['kode_pendaftaran'] ?? '';
+$groupJenis = strtolower($group['jenis'] ?? 'public');
+$groupDesc = $group['deskripsi'] ?? '';
 $username = mysqli_real_escape_string($conn, $_SESSION['username']);
 
-$isMember = mysqli_num_rows(mysqli_query($conn, "SELECT 1 FROM group_members WHERE group_id=$groupId AND username='$username'")) > 0;
+$isMember = mysqli_num_rows(mysqli_query($conn, "SELECT 1 FROM member_grup WHERE idgrup=$groupId AND username='$username'")) > 0;
 $info = isset($_GET['msg']) ? $_GET['msg'] : null;
 $errors = [];
 
 // leave
 if (isset($_GET['leave']) && $isMember) {
-    mysqli_query($conn, "DELETE FROM group_members WHERE group_id=$groupId AND username='$username'");
+    mysqli_query($conn, "DELETE FROM member_grup WHERE idgrup=$groupId AND username='$username'");
     header("Location: groups.php?msg=Berhasil keluar dari grup");
     exit;
 }
@@ -71,22 +58,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['join_code']) && !$isM
     } elseif ($groupJenis !== 'public') {
         $errors[] = "Grup private tidak bisa di-join langsung.";
     } else {
-        mysqli_query($conn, "INSERT INTO group_members(group_id, username, joined_at) VALUES ($groupId, '$username', NOW())");
+        mysqli_query($conn, "INSERT INTO member_grup(idgrup, username) VALUES ($groupId, '$username')");
         header("Location: group_detail.php?id=$groupId&msg=Berhasil bergabung");
         exit;
     }
 }
 
+// deteksi kolom id di member_grup
+$memberIdCol = 'id';
+$cols = [];
+$resCols = mysqli_query($conn, "SHOW COLUMNS FROM member_grup");
+if ($resCols) {
+    while ($c = mysqli_fetch_assoc($resCols)) {
+        $cols[] = $c['Field'];
+    }
+    foreach (['id', 'id_member', 'member_id', 'idmember'] as $cand) {
+        if (in_array($cand, $cols, true)) {
+            $memberIdCol = $cand;
+            break;
+        }
+    }
+    if (!in_array($memberIdCol, $cols, true) && !empty($cols)) {
+        $memberIdCol = $cols[0];
+    }
+}
+
 // load members
+$memberIdSelect = in_array($memberIdCol, $cols, true) ? "gm.`{$memberIdCol}` AS member_id," : "";
 $members = mysqli_query($conn, "
-    SELECT gm.id, gm.username, COALESCE(d.nama, m.nama) AS nama,
+    SELECT {$memberIdSelect} gm.username, COALESCE(d.nama, m.nama) AS nama,
            CASE WHEN d.npk IS NOT NULL THEN 'Dosen'
                 WHEN m.nrp IS NOT NULL THEN 'Mahasiswa'
                 ELSE 'User' END AS tipe
-    FROM group_members gm
+    FROM member_grup gm
     LEFT JOIN dosen d ON d.npk = gm.username
     LEFT JOIN mahasiswa m ON m.nrp = gm.username
-    WHERE gm.group_id=$groupId
+    WHERE gm.idgrup=$groupId
     ORDER BY tipe, nama
 ");
 
@@ -182,7 +189,7 @@ if ($eventsTableReady) {
         <div class="card section">
             <h3><?= htmlspecialchars($groupName); ?> <span class="badge"><?= htmlspecialchars(ucfirst($groupJenis)); ?></span></h3>
             <p><b>Kode Pendaftaran:</b> <span class="pill"><?= htmlspecialchars($groupCode); ?></span></p>
-            <p class="muted"><b>Dosen Pembuat:</b> <?= htmlspecialchars($group['created_by']); ?> | <b>Dibuat:</b> <?= htmlspecialchars($group['created_at']); ?></p>
+            <p class="muted"><b>Dosen Pembuat:</b> <?= htmlspecialchars($group['username_pembuat'] ?? '-'); ?> | <b>Dibuat:</b> <?= htmlspecialchars($group['tanggal_pembentukan'] ?? '-'); ?></p>
             <p><b>Deskripsi:</b> <?= htmlspecialchars($groupDesc); ?></p>
 
             <?php if ($isMember) { ?>

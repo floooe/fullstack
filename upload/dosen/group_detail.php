@@ -12,6 +12,51 @@ if (!isset($_SESSION['level']) || !in_array($_SESSION['level'], ['admin','dosen'
 
 include "../../proses/koneksi.php";
 
+function detect_jenis_enum_values($conn, $table = 'grup') {
+    $res = mysqli_query($conn, "SHOW COLUMNS FROM {$table} LIKE 'jenis'");
+    if ($res && mysqli_num_rows($res) > 0) {
+        $row = mysqli_fetch_assoc($res);
+        if (!empty($row['Type']) && preg_match("/enum\\((.+)\\)/i", $row['Type'], $matches)) {
+            $raw = explode(',', $matches[1]);
+            $values = [];
+            foreach ($raw as $val) {
+                $values[] = trim($val, " '\"");
+            }
+            if (!empty($values)) {
+                return $values;
+            }
+        }
+    }
+    return ['public', 'private'];
+}
+
+function map_db_jenis_to_ui($value) {
+    $lower = strtolower($value);
+    if ($lower === 'publik' || $lower === 'public') {
+        return 'public';
+    }
+    if ($lower === 'privat' || $lower === 'private') {
+        return 'private';
+    }
+    return $lower;
+}
+
+function map_ui_jenis_to_db($uiValue, $enumValues) {
+    $target = strtolower($uiValue);
+    foreach ($enumValues as $enumVal) {
+        $enumLower = strtolower($enumVal);
+        if ($target === 'public' && in_array($enumLower, ['public', 'publik'], true)) {
+            return $enumVal;
+        }
+        if ($target === 'private' && in_array($enumLower, ['private', 'privat'], true)) {
+            return $enumVal;
+        }
+    }
+    return $uiValue;
+}
+
+$jenisEnumValues = detect_jenis_enum_values($conn, 'grup');
+
 function detect_events_table($conn) {
     if (mysqli_num_rows(mysqli_query($conn, "SHOW TABLES LIKE 'events'")) > 0) {
         return 'events';
@@ -37,13 +82,8 @@ if (!$group) {
 // Parse fields
 $groupName = $group['nama'];
 $groupCode = $group['kode_pendaftaran'] ?? '';
-// jenis ambil kolom, fallback dari deskripsi prefix
-$groupJenis = !empty($group['jenis']) ? strtolower($group['jenis']) : 'public';
-if (strpos($group['deskripsi'], '[public]') === 0) {
-    $groupJenis = 'public';
-} elseif (strpos($group['deskripsi'], '[private]') === 0) {
-    $groupJenis = 'private';
-}
+$groupJenisDb = isset($group['jenis']) ? trim((string)$group['jenis']) : '';
+$groupJenis = $groupJenisDb !== '' ? map_db_jenis_to_ui($groupJenisDb) : '';
 $groupDesc = $group['deskripsi'];
 $isCreator = $group['username_pembuat'] === $_SESSION['username'];
 $createdBy = $group['username_pembuat'] ?? ($group['created_by'] ?? '-');
@@ -117,6 +157,57 @@ if ($eventsTableExists) {
 $eventsTableReady = $eventsTableExists && $eventGroupCol && $eventTitleCol;
 $eventOrderCol = $eventScheduleCol ?: ($eventCreatedCol ?: 'id');
 
+// deteksi tabel member (member_grup atau group_members) dan kolom relasi
+$memberTable = null;
+$memberGroupCol = null;
+$memberUserCol = 'username';
+$memberJoinedCol = 'joined_at';
+$memberTables = ['member_grup', 'group_members'];
+foreach ($memberTables as $mt) {
+    $res = mysqli_query($conn, "SHOW TABLES LIKE '$mt'");
+    if ($res && mysqli_num_rows($res) > 0) {
+        $memberTable = $mt;
+        break;
+    }
+}
+if ($memberTable) {
+    $cols = [];
+    $res = mysqli_query($conn, "SHOW COLUMNS FROM {$memberTable}");
+    while ($c = mysqli_fetch_assoc($res)) {
+        $cols[] = $c['Field'];
+    }
+    foreach (['group_id', 'idgrup', 'id_grup'] as $cand) {
+        if (in_array($cand, $cols, true)) {
+            $memberGroupCol = $cand;
+            break;
+        }
+    }
+    if (!$memberGroupCol && !empty($cols)) {
+        $memberGroupCol = $cols[0]; // fallback kolom pertama
+    }
+    if (!in_array('username', $cols, true) && in_array('member_username', $cols, true)) {
+        $memberUserCol = 'member_username';
+    }
+    $memberIdCol = 'id';
+    foreach (['id', 'id_member', 'member_id', 'idmember'] as $candId) {
+        if (in_array($candId, $cols, true)) {
+            $memberIdCol = $candId;
+            break;
+        }
+    }
+    if ($memberIdCol === 'id') {
+        foreach ($cols as $c) {
+            if (stripos($c, 'id') === 0) {
+                $memberIdCol = $c;
+                break;
+            }
+        }
+    }
+    if (!in_array('joined_at', $cols, true)) {
+        $memberJoinedCol = null;
+    }
+}
+
 // helper cek apakah ID grup valid untuk tabel relasi event
 function event_group_exists($conn, $eventGroupCol, $groupId) {
     // jika kolom khas "idgrup" biasanya refer ke tabel "grup"
@@ -172,7 +263,7 @@ function ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc
     }
     if (in_array('jenis', $cols, true)) {
         $insertCols[] = 'jenis';
-        $insertVals[] = "'" . mysqli_real_escape_string($conn, ucfirst($groupJenis)) . "'";
+        $insertVals[] = "'" . mysqli_real_escape_string($conn, $groupJenis) . "'";
     }
     if (in_array('kode_pendaftaran', $cols, true)) {
         $insertCols[] = 'kode_pendaftaran';
@@ -195,25 +286,44 @@ if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'update_group') {
         $nama = trim($_POST['name'] ?? '');
         $desc = trim($_POST['description'] ?? '');
-        $jenis = ($_POST['jenis'] ?? 'public') === 'private' ? 'private' : 'public';
+        // Simpan sesuai input, dipetakan aman ke nilai yang diizinkan
+        $jenisInput = strtolower(trim($_POST['jenis'] ?? ''));
+        if (!in_array($jenisInput, ['public', 'private'], true)) {
+            $errors[] = "Jenis tidak valid.";
+        } else {
+            $groupJenis = $jenisInput;
+            $jenisStored = map_ui_jenis_to_db($jenisInput, $jenisEnumValues);
+            $groupJenisDb = $jenisStored;
+        }
         if ($nama === '') {
             $errors[] = "Nama grup wajib diisi.";
-        } else {
-            $name_final = mysqli_real_escape_string($conn, $nama . " | " . $groupCode);
-            $description_final = mysqli_real_escape_string($conn, "[" . $jenis . "] " . $desc);
-            mysqli_query($conn, "UPDATE groups SET name='$name_final', description='$description_final' WHERE id=$groupId");
-            header("Location: group_detail.php?id=$groupId&msg=Perubahan disimpan");
-            exit;
+        } elseif (empty($errors)) {
+            $groupName = $nama;
+            $groupDesc = $desc;
+            $nama_final = mysqli_real_escape_string($conn, $groupName);
+            $jenis_final = mysqli_real_escape_string($conn, $jenisStored);
+            $desc_final = mysqli_real_escape_string($conn, $groupDesc);
+            $updateRes = mysqli_query($conn, "UPDATE grup SET nama='$nama_final', jenis='$jenis_final', deskripsi='$desc_final' WHERE idgrup=$groupId");
+            if ($updateRes) {
+                header("Location: group_detail.php?id=$groupId&msg=Perubahan disimpan");
+                exit;
+            } else {
+                $errors[] = "Gagal menyimpan perubahan: " . mysqli_error($conn);
+            }
         }
     }
 
-    if ($action === 'add_member') {
+    if ($action === 'add_member' && $memberTable && $memberGroupCol) {
         $memberUsername = trim($_POST['member_username'] ?? '');
         if ($memberUsername !== '') {
             $memberUsernameEsc = mysqli_real_escape_string($conn, $memberUsername);
-            $already = mysqli_num_rows(mysqli_query($conn, "SELECT 1 FROM group_members WHERE group_id=$groupId AND username='$memberUsernameEsc'"));
+            $already = mysqli_num_rows(mysqli_query($conn, "SELECT 1 FROM {$memberTable} WHERE {$memberGroupCol}=$groupId AND {$memberUserCol}='$memberUsernameEsc'"));
             if ($already == 0) {
-                mysqli_query($conn, "INSERT INTO group_members(group_id, username, joined_at) VALUES ($groupId, '$memberUsernameEsc', NOW())");
+                if ($memberJoinedCol) {
+                    mysqli_query($conn, "INSERT INTO {$memberTable}({$memberGroupCol}, {$memberUserCol}, {$memberJoinedCol}) VALUES ($groupId, '$memberUsernameEsc', NOW())");
+                } else {
+                    mysqli_query($conn, "INSERT INTO {$memberTable}({$memberGroupCol}, {$memberUserCol}) VALUES ($groupId, '$memberUsernameEsc')");
+                }
                 header("Location: group_detail.php?id=$groupId&msg=Member ditambahkan");
                 exit;
             } else {
@@ -229,7 +339,7 @@ if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($title !== '') {
             if (!event_group_exists($conn, $eventGroupCol, $groupId)) {
                 // coba sinkronkan baris di tabel grup jika diperlukan
-                if (!ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc, $groupJenis, $groupCode, $group['created_by'], $group['created_at'])) {
+                if (!ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc, $groupJenisDb, $groupCode, $group['created_by'], $group['created_at'])) {
                     $errors[] = "ID grup tidak ditemukan di tabel referensi event. Pastikan grup ada di tabel tujuan (mis. 'grup').";
                 }
             }
@@ -263,7 +373,7 @@ if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             if (!event_group_exists($conn, $eventGroupCol, $groupId)) {
                 // coba sinkronkan baris di tabel grup jika diperlukan
-                if (!ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc, $groupJenis, $groupCode, $group['created_by'], $group['created_at'])) {
+                if (!ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc, $groupJenisDb, $groupCode, $group['created_by'], $group['created_at'])) {
                     $errors[] = "ID grup tidak ditemukan di tabel referensi event. Pastikan grup ada di tabel tujuan (mis. 'grup').";
                 }
             }
@@ -279,8 +389,30 @@ if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($isCreator && isset($_GET['remove_member'])) {
-    $mid = (int)$_GET['remove_member'];
-    mysqli_query($conn, "DELETE FROM group_members WHERE id=$mid AND group_id=$groupId");
+    $mid = isset($_GET['remove_member']) ? (int)$_GET['remove_member'] : 0;
+    $muser = isset($_GET['member_username']) ? mysqli_real_escape_string($conn, $_GET['member_username']) : null;
+    if ($memberTable) {
+        // deteksi kolom id (pk)
+        $memberIdCol = 'id';
+        $resId = mysqli_query($conn, "SHOW COLUMNS FROM {$memberTable}");
+        if ($resId) {
+            while ($c = mysqli_fetch_assoc($resId)) {
+                if (in_array($c['Field'], ['id', 'id_member', 'member_id', 'idmember'], true)) {
+                    $memberIdCol = $c['Field'];
+                    break;
+                }
+                if ($memberIdCol === 'id' && stripos($c['Field'], 'id') === 0) {
+                    $memberIdCol = $c['Field'];
+                }
+            }
+        }
+        $whereGroup = $memberGroupCol ? " {$memberGroupCol}=$groupId" : "1=1";
+        if ($muser !== null) {
+            mysqli_query($conn, "DELETE FROM {$memberTable} WHERE {$whereGroup} AND {$memberUserCol}='{$muser}'");
+        } elseif ($mid > 0) {
+            mysqli_query($conn, "DELETE FROM {$memberTable} WHERE {$whereGroup} AND {$memberIdCol}=$mid");
+        }
+    }
     header("Location: group_detail.php?id=$groupId&msg=Member dihapus");
     exit;
 }
@@ -293,27 +425,35 @@ if ($isCreator && $eventsTableReady && isset($_GET['delete_event'])) {
     exit;
 }
 
-$members = mysqli_query($conn, "
-    SELECT mg.username,
-           COALESCE(d.nama, m.nama) AS nama,
-           CASE 
-                WHEN d.npk IS NOT NULL THEN 'Dosen'
-                WHEN m.nrp IS NOT NULL THEN 'Mahasiswa'
-                ELSE 'User'
-           END AS tipe
-    FROM member_grup mg
-    LEFT JOIN dosen d ON d.npk = mg.username
-    LEFT JOIN mahasiswa m ON m.nrp = mg.username
-    WHERE mg.idgrup=$groupId
-    ORDER BY tipe, nama
-");
+$members = null;
+if ($memberTable && $memberGroupCol) {
+    $userColExpr = "mg.`{$memberUserCol}`";
+    $idColExpr = isset($memberIdCol) ? "mg.`{$memberIdCol}` AS member_id" : "mg.id AS member_id";
+    $members = mysqli_query($conn, "
+        SELECT {$idColExpr},
+               {$userColExpr} AS username,
+               COALESCE(d.nama, m.nama) AS nama,
+               CASE 
+                    WHEN d.npk IS NOT NULL THEN 'Dosen'
+                    WHEN m.nrp IS NOT NULL THEN 'Mahasiswa'
+                    ELSE 'User'
+               END AS tipe
+        FROM {$memberTable} mg
+        LEFT JOIN dosen d ON d.npk = {$userColExpr}
+        LEFT JOIN mahasiswa m ON m.nrp = {$userColExpr}
+        WHERE mg.{$memberGroupCol}=$groupId
+        ORDER BY tipe, nama
+    ");
+}
 
 
 $memberUsernames = [];
 $memberList = [];
-while ($row = mysqli_fetch_assoc($members)) {
-    $memberList[] = $row;
-    $memberUsernames[] = "'" . mysqli_real_escape_string($conn, $row['username']) . "'";
+if ($members) {
+    while ($row = mysqli_fetch_assoc($members)) {
+        $memberList[] = $row;
+        $memberUsernames[] = "'" . mysqli_real_escape_string($conn, $row['username']) . "'";
+    }
 }
 $membersClause = $memberUsernames ? implode(",", $memberUsernames) : "''";
 
@@ -375,7 +515,7 @@ if ($eventsTableReady) {
         </div>
 
         <div class="card section">
-            <h3><?= htmlspecialchars($groupName); ?> <span class="badge"><?= htmlspecialchars(ucfirst($groupJenis)); ?></span></h3>
+            <h3><?= htmlspecialchars($groupName); ?> <span class="badge"><?= htmlspecialchars($groupJenis !== '' ? ucfirst($groupJenis) : '-'); ?></span></h3>
             <p><b>Kode Pendaftaran:</b> <span class="pill"><?= htmlspecialchars($groupCode); ?></span></p>
             <p class="muted"><b>Dibuat oleh:</b> <?= htmlspecialchars($createdBy); ?> | <b>Tanggal:</b> <?= htmlspecialchars($createdAt); ?></p>
             <p><b>Deskripsi:</b> <?= htmlspecialchars($groupDesc); ?></p>
@@ -385,13 +525,19 @@ if ($eventsTableReady) {
                     <h4>Ubah Informasi Grup</h4>
                     <form method="post" class="section">
                         <input type="hidden" name="action" value="update_group">
+                        <?php if (!empty($errors)) { ?>
+                            <div class="alert alert-danger">
+                                <?php foreach ($errors as $e) { echo "<p>" . htmlspecialchars($e) . "</p>"; } ?>
+                            </div>
+                        <?php } ?>
                         <div class="field">
                             <label>Nama</label>
                             <input type="text" name="name" value="<?= htmlspecialchars($groupName); ?>" required>
                         </div>
                         <div class="field">
                             <label>Jenis</label>
-                            <select name="jenis">
+                            <select name="jenis" required>
+                                <option value="" disabled <?= $groupJenis === '' ? 'selected' : ''; ?>>-- Pilih jenis --</option>
                                 <option value="public" <?= $groupJenis === 'public' ? 'selected' : ''; ?>>Public</option>
                                 <option value="private" <?= $groupJenis === 'private' ? 'selected' : ''; ?>>Private</option>
                             </select>
@@ -424,7 +570,7 @@ if ($eventsTableReady) {
                         <td><?= htmlspecialchars($m['tipe']); ?></td>
                         <?php if ($isCreator) { ?>
                             <td>
-                                <button type="button" class="btn btn-danger btn-small" onclick="if(confirm('Hapus member ini?')) location.href='group_detail.php?id=<?= $groupId; ?>&remove_member=<?= $m['id']; ?>'">Hapus</button>
+                                <button type="button" class="btn btn-danger btn-small" onclick="if(confirm('Hapus member ini?')) location.href='group_detail.php?id=<?= $groupId; ?>&remove_member=<?= isset($m['member_id']) ? (int)$m['member_id'] : 0; ?>&member_username=<?= urlencode($m['username']); ?>'">Hapus</button>
                             </td>
                         <?php } ?>
                     </tr>

@@ -49,14 +49,6 @@ function detect_events_table_and_group_col($conn) {
     return [$table, $groupCol];
 }
 
-// helper to read jenis
-function parseJenis($description, $jenisCol = null) {
-    if (!empty($jenisCol)) {
-        return ucfirst(strtolower($jenisCol));
-    }
-    return stripos($description, '[public]') === 0 ? 'Public' : 'Private';
-}
-
 $eventsTable = null;
 $eventsGroupCol = null;
 list($eventsTable, $eventsGroupCol) = detect_events_table_and_group_col($conn);
@@ -148,7 +140,7 @@ $q = mysqli_query($conn, "SELECT * FROM grup WHERE username_pembuat='$username' 
                     while($row = mysqli_fetch_assoc($q)){
                         $nama = $row['nama'];
                         $kode = $row['kode_pendaftaran'] ?? '-';
-                        $jenis = parseJenis($row['deskripsi'], $row['jenis'] ?? null);
+                        $jenis = !empty($row['jenis']) ? ucfirst(strtolower($row['jenis'])) : 'Public';
                 ?>
                     <tr>
                         <td><?= htmlspecialchars($nama); ?></td>
