@@ -64,7 +64,7 @@ if (isset($_GET['delete'])) {
     $own = mysqli_fetch_assoc(mysqli_query($conn, "SELECT created_by FROM groups WHERE id=$delId"));
     if ($own && $own['created_by'] === $_SESSION['username']) {
         // bersihkan member & event bila ada
-        mysqli_query($conn, "DELETE FROM group_members WHERE group_id=$delId");
+        mysqli_query($conn, "DELETE FROM member_grup WHERE group_id=$delId");
         if ($eventsTable && $eventsGroupCol) {
             mysqli_query($conn, "DELETE FROM {$eventsTable} WHERE {$eventsGroupCol}=$delId");
         }
@@ -76,7 +76,8 @@ if (isset($_GET['delete'])) {
     }
 }
 
-$q = mysqli_query($conn, "SELECT * FROM groups WHERE created_by='$username' ORDER BY created_at DESC");
+$q = mysqli_query($conn, "SELECT * FROM grup WHERE username_pembuat='$username' ORDER BY tanggal_pembentukan DESC");
+
 ?>
 <!DOCTYPE html>
 <html>
