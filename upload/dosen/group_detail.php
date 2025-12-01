@@ -4,7 +4,6 @@ if (!isset($_SESSION['username'])) {
     header("Location: ../../index.php");
     exit;
 }
-// izinkan dosen maupun admin
 if (!isset($_SESSION['level']) || !in_array($_SESSION['level'], ['admin', 'dosen'])) {
     header("Location: ../../home.php");
     exit;
@@ -83,7 +82,6 @@ if (!$group) {
     exit;
 }
 
-// Parse fields
 $groupName = $group['nama'];
 $groupCode = $group['kode_pendaftaran'] ?? '';
 $groupJenisDb = isset($group['jenis']) ? trim((string) $group['jenis']) : '';
@@ -155,13 +153,12 @@ if ($eventsTableExists) {
         }
     }
     if (!$eventIdCol && !empty($cols)) {
-        $eventIdCol = $cols[0]; // fallback kolom pertama
+        $eventIdCol = $cols[0];
     }
 }
 $eventsTableReady = $eventsTableExists && $eventGroupCol && $eventTitleCol;
 $eventOrderCol = $eventScheduleCol ?: ($eventCreatedCol ?: 'id');
 
-// deteksi tabel member (member_grup atau group_members) dan kolom relasi
 $memberTable = null;
 $memberGroupCol = null;
 $memberUserCol = 'username';
@@ -187,7 +184,7 @@ if ($memberTable) {
         }
     }
     if (!$memberGroupCol && !empty($cols)) {
-        $memberGroupCol = $cols[0]; // fallback kolom pertama
+        $memberGroupCol = $cols[0]; 
     }
     if (!in_array('username', $cols, true) && in_array('member_username', $cols, true)) {
         $memberUserCol = 'member_username';
@@ -212,38 +209,31 @@ if ($memberTable) {
     }
 }
 
-// helper cek apakah ID grup valid untuk tabel relasi event
 function event_group_exists($conn, $eventGroupCol, $groupId)
 {
-    // jika kolom khas "idgrup" biasanya refer ke tabel "grup"
     if ($eventGroupCol === 'idgrup' || $eventGroupCol === 'id_grup') {
         $res = mysqli_query($conn, "SELECT 1 FROM grup WHERE idgrup=$groupId LIMIT 1");
         return mysqli_num_rows($res) > 0;
     }
-    // default cek ke tabel groups
     $res = mysqli_query($conn, "SELECT 1 FROM groups WHERE id=$groupId LIMIT 1");
     return mysqli_num_rows($res) > 0;
 }
 
-// pastikan baris grup ada di tabel "grup" jika FK event menunjuk ke sana
 function ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc, $groupJenis, $groupCode, $groupCreatedBy, $groupCreatedAt)
 {
     if (!in_array($eventGroupCol, ['idgrup', 'id_grup'], true)) {
-        return true; // tidak butuh sinkron
+        return true; 
     }
 
-    // cek tabel grup ada
     if (mysqli_num_rows(mysqli_query($conn, "SHOW TABLES LIKE 'grup'")) === 0) {
         return false;
     }
 
-    // sudah ada?
     $exists = mysqli_query($conn, "SELECT 1 FROM grup WHERE idgrup=$groupId LIMIT 1");
     if (mysqli_num_rows($exists) > 0) {
         return true;
     }
 
-    // deteksi kolom yang tersedia
     $cols = [];
     $colRes = mysqli_query($conn, "SHOW COLUMNS FROM grup");
     while ($c = mysqli_fetch_assoc($colRes)) {
@@ -285,14 +275,12 @@ function ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc
     return mysqli_query($conn, "INSERT INTO grup($colList) VALUES ($valList)");
 }
 
-// ACTION HANDLERS
 if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
     if ($action === 'update_group') {
         $nama = trim($_POST['name'] ?? '');
         $desc = trim($_POST['description'] ?? '');
-        // Simpan sesuai input, dipetakan aman ke nilai yang diizinkan
         $jenisInput = strtolower(trim($_POST['jenis'] ?? ''));
         if (!in_array($jenisInput, ['public', 'private'], true)) {
             $errors[] = "Jenis tidak valid.";
@@ -328,15 +316,12 @@ if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($memberJoinedCol) {
                     mysqli_query($conn, "INSERT INTO {$memberTable}({$memberGroupCol}, {$memberUserCol}, {$memberJoinedCol}) VALUES ($groupId, '$memberUsernameEsc', NOW())");
                 } else {
-                    // Cek apakah username ada di tabel akun
                     $checkAkun = mysqli_query($conn, "SELECT username FROM akun WHERE username='$memberUsernameEsc' LIMIT 1");
 
                     if (mysqli_num_rows($checkAkun) == 0) {
-                        // Jika belum ada → buat akun default (password = username)
                         mysqli_query($conn, "INSERT INTO akun(username, password, isadmin) VALUES('$memberUsernameEsc', MD5('$memberUsernameEsc'), 0)");
                     }
 
-                    // Setelah dipastikan ada → insert ke member_grup
                     mysqli_query($conn, "INSERT INTO {$memberTable}({$memberGroupCol}, {$memberUserCol}) VALUES ($groupId, '$memberUsernameEsc')");
 
                 }
@@ -354,7 +339,6 @@ if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $detail = mysqli_real_escape_string($conn, trim($_POST['detail'] ?? ''));
         if ($title !== '') {
             if (!event_group_exists($conn, $eventGroupCol, $groupId)) {
-                // coba sinkronkan baris di tabel grup jika diperlukan
                 if (!ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc, $groupJenisDb, $groupCode, $group['created_by'], $group['created_at'])) {
                     $errors[] = "ID grup tidak ditemukan di tabel referensi event. Pastikan grup ada di tabel tujuan (mis. 'grup').";
                 }
@@ -388,7 +372,6 @@ if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "Judul event wajib diisi.";
         } else {
             if (!event_group_exists($conn, $eventGroupCol, $groupId)) {
-                // coba sinkronkan baris di tabel grup jika diperlukan
                 if (!ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc, $groupJenisDb, $groupCode, $group['created_by'], $group['created_at'])) {
                     $errors[] = "ID grup tidak ditemukan di tabel referensi event. Pastikan grup ada di tabel tujuan (mis. 'grup').";
                 }
@@ -408,7 +391,6 @@ if ($isCreator && isset($_GET['remove_member'])) {
     $mid = isset($_GET['remove_member']) ? (int) $_GET['remove_member'] : 0;
     $muser = isset($_GET['member_username']) ? mysqli_real_escape_string($conn, $_GET['member_username']) : null;
     if ($memberTable) {
-        // deteksi kolom id (pk)
         $memberIdCol = 'id';
         $resId = mysqli_query($conn, "SHOW COLUMNS FROM {$memberTable}");
         if ($resId) {

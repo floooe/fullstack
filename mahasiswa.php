@@ -5,7 +5,6 @@ if (!isset($_SESSION['username'])) {
     exit;
 }
 
-// Hanya admin yang boleh mengakses halaman ini
 if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
     header('Location: home.php');
     exit;

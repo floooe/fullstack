@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Clear session data
 $_SESSION = [];
 if (ini_get('session.use_cookies')) {
     $params = session_get_cookie_params();
@@ -12,7 +11,6 @@ if (ini_get('session.use_cookies')) {
 
 session_destroy();
 
-// Redirect back to login (app root)
 header('Location: index.php');
 exit;
 ?>

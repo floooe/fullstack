@@ -43,15 +43,13 @@ $isMember = mysqli_num_rows(mysqli_query($conn, "SELECT 1 FROM member_grup WHERE
 $info = isset($_GET['msg']) ? $_GET['msg'] : null;
 $errors = [];
 
-// leave
-if (isset($_GET['leave']) && $isMember) {
+=if (isset($_GET['leave']) && $isMember) {
     mysqli_query($conn, "DELETE FROM member_grup WHERE idgrup=$groupId AND username='$username'");
     header("Location: groups.php?msg=Berhasil keluar dari grup");
     exit;
 }
 
-// join from detail (still needs code)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['join_code']) && !$isMember) {
+=if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['join_code']) && !$isMember) {
     $kode = strtoupper(trim($_POST['join_code']));
     if ($kode === '' || $kode !== strtoupper($groupCode)) {
         $errors[] = "Kode salah.";
@@ -64,7 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['join_code']) && !$isM
     }
 }
 
-// deteksi kolom id di member_grup
 $memberIdCol = 'id';
 $cols = [];
 $resCols = mysqli_query($conn, "SHOW COLUMNS FROM member_grup");
@@ -83,7 +80,6 @@ if ($resCols) {
     }
 }
 
-// load members
 $memberIdSelect = in_array($memberIdCol, $cols, true) ? "gm.`{$memberIdCol}` AS member_id," : "";
 $members = mysqli_query($conn, "
     SELECT {$memberIdSelect} gm.username, COALESCE(d.nama, m.nama) AS nama,

@@ -12,7 +12,6 @@ if ($mysqli->connect_errno) {
 if (isset($_GET['npk'])) {
     $npk_to_delete = $_GET['npk'];
 
-    // cek apakah ada kolom akun_username di tabel dosen
     $colRes = $mysqli->query("SHOW COLUMNS FROM dosen");
     $hasAkunCol = false;
     while ($c = $colRes->fetch_assoc()) {
@@ -20,7 +19,6 @@ if (isset($_GET['npk'])) {
     }
     $colRes->free();
 
-    // ambil data foto + akun_username (jika ada)
     $query_select = $hasAkunCol
         ? "SELECT foto_extension, akun_username FROM dosen WHERE npk = ?"
         : "SELECT foto_extension FROM dosen WHERE npk = ?";
@@ -52,7 +50,6 @@ if (isset($_GET['npk'])) {
     $stmt_delete->bind_param('s', $npk_to_delete);
 
     if ($stmt_delete->execute()) {
-        // hapus akun login default (npk) dan akun kustom (jika ada)
         $stmt_akun = $mysqli->prepare("DELETE FROM akun WHERE username = ?");
         $stmt_akun->bind_param('s', $npk_to_delete);
         $stmt_akun->execute();

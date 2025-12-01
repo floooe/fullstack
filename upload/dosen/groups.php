@@ -4,7 +4,6 @@ if (!isset($_SESSION['username'])) {
     header("Location: ../../index.php");
     exit;
 }
-// izinkan dosen maupun admin
 if (!isset($_SESSION['level']) || !in_array($_SESSION['level'], ['admin','dosen'])) {
     header("Location: ../../home.php");
     exit;
@@ -17,7 +16,6 @@ $success = isset($_GET['success']);
 $createdCode = $_GET['kode'] ?? null;
 $message = isset($_GET['msg']) ? $_GET['msg'] : null;
 
-// deteksi tabel event (support events/event) dan kolom relasi grup
 function detect_event_tables($conn) {
     $tables = [];
     foreach (['events', 'event'] as $candidate) {
@@ -56,7 +54,6 @@ function detect_event_tables($conn) {
 
 $eventTables = detect_event_tables($conn);
 
-// deteksi tabel member yang berisi relasi ke grup
 function detect_member_group_relations($conn) {
     $relations = [];
     $memberTables = ['member_grup', 'group_members'];
@@ -96,12 +93,10 @@ function detect_member_group_relations($conn) {
 
 $memberRelations = detect_member_group_relations($conn);
 
-// Hapus grup milik sendiri
 if (isset($_GET['delete'])) {
     $delId = (int)$_GET['delete'];
     $own = mysqli_fetch_assoc(mysqli_query($conn, "SELECT username_pembuat FROM grup WHERE idgrup=$delId"));
     if ($own && $own['username_pembuat'] === $_SESSION['username']) {
-        // bersihkan member & event bila ada
         foreach ($memberRelations as $relation) {
             if (empty($relation['group_col'])) {
                 continue;

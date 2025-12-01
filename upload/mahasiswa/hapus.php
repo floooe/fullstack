@@ -12,7 +12,6 @@ if ($mysqli->connect_errno) {
 if (isset($_GET['nrp'])) {
     $nrp_to_delete = $_GET['nrp'];
 
-    // cek apakah ada kolom akun_username di tabel mahasiswa
     $colRes = $mysqli->query("SHOW COLUMNS FROM mahasiswa");
     $hasAkunCol = false;
     while ($c = $colRes->fetch_assoc()) {
@@ -20,7 +19,6 @@ if (isset($_GET['nrp'])) {
     }
     $colRes->free();
 
-    // ambil data foto + akun_username (jika ada)
     $query_select = $hasAkunCol
         ? "SELECT foto_extention, akun_username FROM mahasiswa WHERE nrp = ?"
         : "SELECT foto_extention FROM mahasiswa WHERE nrp = ?";
@@ -52,7 +50,6 @@ if (isset($_GET['nrp'])) {
     $stmt_delete->bind_param('s', $nrp_to_delete);
 
     if ($stmt_delete->execute()) {
-        // hapus akun login default (nrp) dan akun kustom (jika ada)
         $stmt_akun = $mysqli->prepare("DELETE FROM akun WHERE username = ?");
         $stmt_akun->bind_param('s', $nrp_to_delete);
         $stmt_akun->execute();

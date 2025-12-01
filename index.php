@@ -6,7 +6,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
     
-    // helper cek level user
     function is_dosen_user($conn, $u) {
         $uEsc = mysqli_real_escape_string($conn, $u);
         $fields = [];
@@ -41,14 +40,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         return mysqli_num_rows($q) > 0;
     }
 
-    // Ambil data akun berdasarkan username
     $sql = "SELECT * FROM akun WHERE username='$username' AND password=MD5('$password')";
     $result = mysqli_query($conn, $sql);
 
     if (mysqli_num_rows($result) > 0) {
         $data = mysqli_fetch_assoc($result);
 
-        // Set session
         $_SESSION['username'] = $data['username'];
         if ($data['isadmin'] == 1) {
             $_SESSION['level'] = 'admin';
@@ -59,12 +56,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif (is_mahasiswa_user($conn, $u)) {
                 $_SESSION['level'] = 'mahasiswa';
             } else {
-                // fallback: anggap mahasiswa
                 $_SESSION['level'] = 'mahasiswa';
             }
         }
 
-        // Redirect ke dashboard utama
         header("Location: /fullstack/fullstack/home.php");
         exit;
     } else {

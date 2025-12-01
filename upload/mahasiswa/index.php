@@ -1,5 +1,4 @@
 <?php
-// URL helper removed; use direct relative paths
 session_start();
 if (!isset($_SESSION['username'])) {
     header('Location: ../../index.php');
@@ -18,12 +17,10 @@ $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-// Hitung total data
 $totalResult = $mysqli->query("SELECT COUNT(nrp) AS total FROM mahasiswa");
 $totalData = $totalResult->fetch_assoc()['total'];
 $totalPage = ceil($totalData / $limit);
 
-// Ambil data mahasiswa
 $sql = "SELECT nrp, nama, gender, tanggal_lahir, angkatan, foto_extention 
         FROM mahasiswa ORDER BY nrp DESC LIMIT ? OFFSET ?";
 $stmt = $mysqli->prepare($sql);

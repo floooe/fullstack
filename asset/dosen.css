@@ -25,7 +25,6 @@
   border: 1px dashed var(--border);
 }
 
-/* Tombol seragam */
 .btn {
   display: inline-flex;
   align-items: center;

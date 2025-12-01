@@ -12,18 +12,13 @@ if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'mahasiswa') {
 
 include "../../proses/koneksi.php";
 
-// ======================
-// INISIALISASI VARIABEL
-// ======================
 $username = mysqli_real_escape_string($conn, $_SESSION['username']);
 
-$joined = isset($_GET['joined']);                // ?joined=1
-$error  = isset($_GET['error']) ? $_GET['error'] : null; // ?error=...
-$info   = isset($_GET['info'])  ? $_GET['info']  : null; // kalau nanti mau pakai ?info=...
+$joined = isset($_GET['joined']);              
+$error  = isset($_GET['error']) ? $_GET['error'] : null; 
+$info   = isset($_GET['info'])  ? $_GET['info']  : null; 
 
-// ====================
-// 1. Grup yang diikuti
-// ====================
+
 $sqlJoined = "
     SELECT g.idgrup, g.nama, g.kode_pendaftaran, g.jenis, g.username_pembuat
     FROM member_grup m
@@ -33,10 +28,6 @@ $sqlJoined = "
 ";
 $qJoined = mysqli_query($conn, $sqlJoined);
 
-// =============================
-// 2. Daftar grup publik tersedia
-//    (mahasiswa belum join)
-// =============================
 $sqlPublic = "
     SELECT g.idgrup, g.nama, g.kode_pendaftaran, g.username_pembuat
     FROM grup g

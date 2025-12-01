@@ -4,7 +4,6 @@ if (!isset($_SESSION['username'])) {
     header("Location: ../../index.php");
     exit;
 }
-// izinkan dosen maupun admin
 if (!isset($_SESSION['level']) || !in_array($_SESSION['level'], ['admin','dosen'])) {
     header("Location: ../../home.php");
     exit;
@@ -14,17 +13,16 @@ include "../../proses/koneksi.php";
 
 $errors = [];
 
-// Deteksi casing enum kolom jenis (lower/title) agar penyimpanan cocok dengan DB
 function detect_jenis_case($conn, $table = 'grup') {
     $res = mysqli_query($conn, "SHOW COLUMNS FROM {$table} LIKE 'jenis'");
     if ($res && mysqli_num_rows($res) > 0) {
         $row = mysqli_fetch_assoc($res);
         if (!empty($row['Type']) && stripos($row['Type'], 'enum(') === 0) {
             if (stripos($row['Type'], "'Public'") !== false) {
-                return 'title'; // Enum memakai Public/Private
+                return 'title'; 
             }
             if (stripos($row['Type'], "'public'") !== false) {
-                return 'lower'; // Enum memakai public/private
+                return 'lower'; 
             }
         }
     }
@@ -35,12 +33,10 @@ $jenisCase = detect_jenis_case($conn, 'grup');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $nama = trim($_POST['name'] ?? '');
-    // Validasi jenis; jangan paksa default public
     $jenisInput = strtolower(trim($_POST['jenis'] ?? ''));
     if (!in_array($jenisInput, ['public', 'private'], true)) {
         $errors[] = "Pilih jenis grup (Public/Private).";
     }
-    // Sesuaikan casing dengan enum di DB
     if ($jenisCase === 'title') {
         $jenis = $jenisInput === 'private' ? 'Private' : 'Public';
     } else {
@@ -55,13 +51,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
 
-        // Generate kode unik 6 huruf/angka
         $kode = strtoupper(substr(md5(time()), 0, 6));
 
-        // Escape nama
         $nama_final = mysqli_real_escape_string($conn, $nama);
 
-        // UNTUK DATABASE SESUAI STRUKTUR
         $sql = "INSERT INTO grup (username_pembuat, nama, jenis, kode_pendaftaran, tanggal_pembentukan, deskripsi)
                 VALUES ('$created_by', '$nama_final', '$jenis', '$kode', NOW(), '$deskripsi')";
 

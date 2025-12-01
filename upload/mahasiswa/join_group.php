@@ -1,13 +1,11 @@
 <?php
 session_start();
 
-// wajib login
 if (!isset($_SESSION['username'])) {
     header("Location: ../../index.php");
     exit;
 }
 
-// hanya level mahasiswa
 if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'mahasiswa') {
     header("Location: ../../home.php");
     exit;
@@ -17,21 +15,17 @@ include "../../proses/koneksi.php";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // ambil kode dari form
     $kodeInput = trim($_POST['kode'] ?? '');
     if ($kodeInput === '') {
         header("Location: groups.php?error=Kode wajib diisi");
         exit;
     }
 
-    // samakan format: uppercase
     $kode = strtoupper($kodeInput);
 
     $username = mysqli_real_escape_string($conn, $_SESSION['username']);
     $kodeEsc  = mysqli_real_escape_string($conn, $kode);
 
-    // CARI GRUP BERDASARKAN KODE
-    // TRIM + UPPER untuk jaga-jaga kalau di DB ada spasi / beda kapital
     $sqlGrup = "
         SELECT *
         FROM grup
@@ -41,17 +35,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $qGrup = mysqli_query($conn, $sqlGrup);
 
     if (!$qGrup || mysqli_num_rows($qGrup) == 0) {
-        // tidak ada grup dengan kode tsb
         header("Location: groups.php?error=Kode salah atau grup tidak ditemukan");
         exit;
     }
 
     $grup = mysqli_fetch_assoc($qGrup);
 
-    // CEK JENIS GRUP: hanya boleh join kalau publik
     $jenis = strtolower(trim($grup['jenis'] ?? ''));
 
-    // anggap default-nya publik kalau kosong
     if ($jenis === 'privat') {
         header("Location: groups.php?error=Grup ini privat. Tidak bisa join dengan kode.");
         exit;
@@ -59,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $group_id = (int)$grup['idgrup'];
 
-    // CEK SUDAH JADI MEMBER BELUM
     $sqlCek = "
         SELECT 1 
         FROM member_grup 
@@ -71,7 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sudah = $qCek && mysqli_num_rows($qCek) > 0;
 
     if (!$sudah) {
-        // INSERT MEMBER BARU (tanpa tanggal_gabung)
         $sqlInsert = "
         INSERT INTO member_grup (idgrup, username)
         VALUES ($group_id, '$username')
@@ -80,7 +69,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
 
-    // balik ke halaman groups mahasiswa dengan pesan sukses
     header("Location: groups.php?joined=1");
     exit;
 }

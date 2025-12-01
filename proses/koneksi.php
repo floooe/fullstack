@@ -4,10 +4,17 @@ $user = "root";
 $pass = "";
 $db = "fullstack";
 
-// koneksi ke database
-$conn = mysqli_connect($server, $user, $pass, $db);
+$conn = null;
+$hosts = ['127.0.0.1', 'localhost'];
+foreach ($hosts as $host) {
+    $conn = @mysqli_connect($host, $user, $pass, $db);
+    if ($conn) {
+        $server = $host;
+        break;
+    }
+}
 
 if (!$conn) {
-    die("Koneksi gagal: " . mysqli_connect_error());
+    die("Koneksi gagal ke {$db}@{$server}: " . mysqli_connect_error());
 }
 ?>

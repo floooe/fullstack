@@ -1,7 +1,4 @@
 <?php
-// URL helper to generate paths relative to the app root directory
-// Detect app root as either <repo>/Project Full-Stack (preferred) or <repo> fallback
-
 function __app_root_fs() {
     static $path = null;
     if ($path === null) {
@@ -27,7 +24,6 @@ function __relpath($from, $to) {
     if ($from === false || $to === false) return '';
     $fromParts = explode('/', rtrim($from, '/'));
     $toParts   = explode('/', rtrim($to, '/'));
-    // Find common prefix length
     $len = min(count($fromParts), count($toParts));
     $i = 0;
     while ($i < $len && $fromParts[$i] === $toParts[$i]) { $i++; }
@@ -39,7 +35,6 @@ function __relpath($from, $to) {
     return $rel === '' ? './' : $rel . '/';
 }
 
-// Returns a relative URL from current script to app root + $path (can include ..)
 function url_from_app($pathWithinApp) {
     $curDir = __current_dir_fs();
     $appRoot = __app_root_fs();

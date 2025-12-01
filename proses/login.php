@@ -6,7 +6,6 @@ if (isset($_POST['login'])) {
     $user = $_POST['username'];
     $pass = $_POST['password'];
 
-    // helper cek level user
     function is_dosen_user($conn, $u) {
         $uEsc = mysqli_real_escape_string($conn, $u);
         $fields = [];
@@ -41,7 +40,6 @@ if (isset($_POST['login'])) {
         return mysqli_num_rows($q) > 0;
     }
 
-    // Cocokkan password dengan hash MD5
     $sql = "SELECT * FROM akun WHERE username='$user' AND password=MD5('$pass')";
     $query = mysqli_query($conn, $sql);
     $data = mysqli_fetch_assoc($query);

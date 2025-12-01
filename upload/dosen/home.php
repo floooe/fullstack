@@ -2,26 +2,23 @@
 session_start();
 include "../../proses/koneksi.php";
 
-// Cek login
 if (!isset($_SESSION['username'])) {
     header("Location: ../index.php");
     exit();
 }
 
-// Fungsi generate kode unik
 function generateKode($length = 6) {
     $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     return substr(str_shuffle($characters), 0, $length);
 }
 
-// Proses submit form tambah grup
 if (isset($_POST['tambah'])) {
     $nama = mysqli_real_escape_string($conn, $_POST['nama']);
     $kode_pendaftaran = generateKode();
     $username_pembuat = $_SESSION['username'];
     $tanggal = date("Y-m-d H:i:s");
-    $jenis = "Privat"; // Default, bisa diubah sesuai kebutuhan
-    $deskripsi = "";   // Default kosong
+    $jenis = "Privat"; 
+    $deskripsi = "";  
 
     $query = "INSERT INTO grup (username_pembuat, nama, deskripsi, tanggal_pembentukan, jenis, kode_pendaftaran)
               VALUES ('$username_pembuat', '$nama', '$deskripsi', '$tanggal', '$jenis', '$kode_pendaftaran')";
@@ -37,7 +34,6 @@ if (isset($_POST['tambah'])) {
     }
 }
 
-// Ambil daftar grup milik dosen
 $username = $_SESSION['username'];
 $data = mysqli_query($conn, "SELECT * FROM grup WHERE username_pembuat='$username'");
 
