@@ -3,58 +3,63 @@ session_start();
 include __DIR__ . '/proses/koneksi.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-    
+
+    $username = mysqli_real_escape_string($conn, $_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
+
     function is_dosen_user($conn, $u) {
         $uEsc = mysqli_real_escape_string($conn, $u);
-        $fields = [];
-        $colRes = mysqli_query($conn, "SHOW COLUMNS FROM dosen");
-        while ($c = mysqli_fetch_assoc($colRes)) {
-            $fields[] = $c['Field'];
+        $cols = [];
+        $res = mysqli_query($conn, "SHOW COLUMNS FROM dosen");
+        while ($c = mysqli_fetch_assoc($res)) {
+            $cols[] = $c['Field'];
         }
+
         $conds = [];
-        if (in_array('npk', $fields, true)) $conds[] = "npk='$uEsc'";
-        if (in_array('username', $fields, true)) $conds[] = "username='$uEsc'";
-        if (in_array('akun_username', $fields, true)) $conds[] = "akun_username='$uEsc'";
+        if (in_array('npk', $cols, true)) $conds[] = "npk='$uEsc'";
+        if (in_array('username', $cols, true)) $conds[] = "username='$uEsc'";
+        if (in_array('akun_username', $cols, true)) $conds[] = "akun_username='$uEsc'";
         if (!$conds) return false;
-        $where = implode(' OR ', $conds);
-        $q = mysqli_query($conn, "SELECT 1 FROM dosen WHERE $where LIMIT 1");
+
+        $q = mysqli_query($conn, "SELECT 1 FROM dosen WHERE " . implode(' OR ', $conds) . " LIMIT 1");
         return mysqli_num_rows($q) > 0;
     }
 
     function is_mahasiswa_user($conn, $u) {
         $uEsc = mysqli_real_escape_string($conn, $u);
-        $fields = [];
-        $colRes = mysqli_query($conn, "SHOW COLUMNS FROM mahasiswa");
-        while ($c = mysqli_fetch_assoc($colRes)) {
-            $fields[] = $c['Field'];
+        $cols = [];
+        $res = mysqli_query($conn, "SHOW COLUMNS FROM mahasiswa");
+        while ($c = mysqli_fetch_assoc($res)) {
+            $cols[] = $c['Field'];
         }
+
         $conds = [];
-        if (in_array('nrp', $fields, true)) $conds[] = "nrp='$uEsc'";
-        if (in_array('username', $fields, true)) $conds[] = "username='$uEsc'";
-        if (in_array('akun_username', $fields, true)) $conds[] = "akun_username='$uEsc'";
+        if (in_array('nrp', $cols, true)) $conds[] = "nrp='$uEsc'";
+        if (in_array('username', $cols, true)) $conds[] = "username='$uEsc'";
+        if (in_array('akun_username', $cols, true)) $conds[] = "akun_username='$uEsc'";
         if (!$conds) return false;
-        $where = implode(' OR ', $conds);
-        $q = mysqli_query($conn, "SELECT 1 FROM mahasiswa WHERE $where LIMIT 1");
+
+        $q = mysqli_query($conn, "SELECT 1 FROM mahasiswa WHERE " . implode(' OR ', $conds) . " LIMIT 1");
         return mysqli_num_rows($q) > 0;
     }
 
-    $sql = "SELECT * FROM akun WHERE username='$username' AND password=MD5('$password')";
+    $sql = "SELECT * FROM akun 
+            WHERE username='$username' 
+            AND password=MD5('$password') 
+            LIMIT 1";
+
     $result = mysqli_query($conn, $sql);
 
-    if (mysqli_num_rows($result) > 0) {
-        $data = mysqli_fetch_assoc($result);
+    if ($result && mysqli_num_rows($result) === 1) {
 
+        $data = mysqli_fetch_assoc($result);
         $_SESSION['username'] = $data['username'];
-        if ($data['isadmin'] == 1) {
+
+        if ((int)$data['isadmin'] === 1) {
             $_SESSION['level'] = 'admin';
         } else {
-            $u = $data['username'];
-            if (is_dosen_user($conn, $u)) {
+            if (is_dosen_user($conn, $data['username'])) {
                 $_SESSION['level'] = 'dosen';
-            } elseif (is_mahasiswa_user($conn, $u)) {
-                $_SESSION['level'] = 'mahasiswa';
             } else {
                 $_SESSION['level'] = 'mahasiswa';
             }
@@ -62,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         header("Location: /fullstack/fullstack/home.php");
         exit;
+
     } else {
         $error = "Username atau password salah!";
     }
@@ -76,28 +82,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="asset/login.css">
 </head>
 <body>
-    <div class="login-shell">
-        <div class="login-card">
-            <h2>Masuk ke Portal</h2>
-            <p>Kelola grup, dosen, dan mahasiswa dalam satu tempat.</p>
-            
-            <?php if (isset($error)) { ?>
-                <div class="error"><?= htmlspecialchars($error); ?></div>
-            <?php } ?>
+<div class="login-shell">
+    <div class="login-card">
+        <h2>Masuk ke Portal</h2>
+        <p>Kelola grup, dosen, dan mahasiswa dalam satu tempat.</p>
 
-            <form method="post" action="">
-                <div class="field">
-                    <label>Username</label>
-                    <input type="text" name="username" placeholder="Masukkan username" required>
-                </div>
-                <div class="field">
-                    <label>Password</label>
-                    <input type="password" name="password" placeholder="Masukkan password" required>
-                </div>
-                <button type="submit" class="btn btn-block">Masuk</button>
-            </form>
-        </div>
-        <div class="footer-note">Gunakan akun yang sudah terdaftar. Hubungi admin jika mengalami kendala.</div>
+        <?php if (!empty($error)) { ?>
+            <div class="error"><?= htmlspecialchars($error); ?></div>
+        <?php } ?>
+
+        <form method="post" action="">
+            <div class="field">
+                <label>Username</label>
+                <input type="text" name="username" required>
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-block">Masuk</button>
+        </form>
     </div>
+    <div class="footer-note">
+        Gunakan akun yang sudah terdaftar. Hubungi admin jika mengalami kendala.
+    </div>
+</div>
 </body>
 </html>

@@ -1,69 +1,49 @@
 <?php
 session_start();
+
 if (!isset($_SESSION['username'])) {
     header("Location: ../../index.php");
     exit;
 }
-if (!isset($_SESSION['level']) || !in_array($_SESSION['level'], ['admin','dosen'])) {
+
+if (!isset($_SESSION['level']) || !in_array($_SESSION['level'], ['admin', 'dosen'])) {
     header("Location: ../../home.php");
     exit;
 }
 
-include "../../proses/koneksi.php";
+require_once "../../class/Group.php";
 
+$groupObj = new Grup();
 $errors = [];
-
-function detect_jenis_case($conn, $table = 'grup') {
-    $res = mysqli_query($conn, "SHOW COLUMNS FROM {$table} LIKE 'jenis'");
-    if ($res && mysqli_num_rows($res) > 0) {
-        $row = mysqli_fetch_assoc($res);
-        if (!empty($row['Type']) && stripos($row['Type'], 'enum(') === 0) {
-            if (stripos($row['Type'], "'Public'") !== false) {
-                return 'title'; 
-            }
-            if (stripos($row['Type'], "'public'") !== false) {
-                return 'lower'; 
-            }
-        }
-    }
-    return 'lower';
-}
-$jenisCase = detect_jenis_case($conn, 'grup');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $nama = trim($_POST['name'] ?? '');
-    $jenisInput = strtolower(trim($_POST['jenis'] ?? ''));
-    if (!in_array($jenisInput, ['public', 'private'], true)) {
-        $errors[] = "Pilih jenis grup (Public/Private).";
-    }
-    if ($jenisCase === 'title') {
-        $jenis = $jenisInput === 'private' ? 'Private' : 'Public';
-    } else {
-        $jenis = $jenisInput;
-    }
-    $created_by = mysqli_real_escape_string($conn, $_SESSION['username']);
-    $deskripsi = mysqli_real_escape_string($conn, trim($_POST['description'] ?? ''));
+    $jenis = strtolower(trim($_POST['jenis'] ?? ''));
+    $deskripsi = trim($_POST['description'] ?? '');
 
     if ($nama === '') {
         $errors[] = "Nama grup wajib diisi.";
     }
 
+    if (!in_array($jenis, ['public', 'private'])) {
+        $errors[] = "Jenis grup harus Public atau Private.";
+    }
+
     if (empty($errors)) {
 
-        $kode = strtoupper(substr(md5(time()), 0, 6));
+        $result = $groupObj->createGroup(
+            $nama,
+            $jenis,
+            $deskripsi,
+            $_SESSION['username']
+        );
 
-        $nama_final = mysqli_real_escape_string($conn, $nama);
-
-        $sql = "INSERT INTO grup (username_pembuat, nama, jenis, kode_pendaftaran, tanggal_pembentukan, deskripsi)
-                VALUES ('$created_by', '$nama_final', '$jenis', '$kode', NOW(), '$deskripsi')";
-
-        if (mysqli_query($conn, $sql)) {
-            $newId = mysqli_insert_id($conn);
-            header("Location: group_detail.php?id=$newId&msg=Grup berhasil dibuat");
+        if ($result) {
+            header("Location: groups.php?msg=Grup berhasil dibuat");
             exit;
         } else {
-            $errors[] = "Gagal menyimpan grup: " . mysqli_error($conn);
+            $errors[] = "Gagal membuat grup.";
         }
     }
 }
@@ -83,12 +63,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h2 class="page-title">Buat Group Baru</h2>
                 <p class="page-subtitle">Susun grup dan bagikan kode pendaftaran ke anggota.</p>
             </div>
-            <button type="button" class="btn btn-secondary btn-small" onclick="location.href='../../home.php'">Kembali ke Home</button>
+            <button type="button" class="btn btn-secondary btn-small"
+                onclick="location.href='groups.php'">Kembali</button>
         </div>
 
         <?php if (!empty($errors)) { ?>
             <div class="alert alert-danger">
-                <?php foreach ($errors as $e) { echo "<p>" . htmlspecialchars($e) . "</p>"; } ?>
+                <?php foreach ($errors as $e) { ?>
+                    <p><?= htmlspecialchars($e); ?></p>
+                <?php } ?>
             </div>
         <?php } ?>
 
@@ -96,23 +79,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="post" class="section">
                 <div class="field">
                     <label>Nama Group</label>
-                    <input type="text" name="name" required placeholder="Mis. Pemrograman Web A">
+                    <input type="text" name="name" required placeholder="Mis. Pemrograman Web A"
+                        value="<?= htmlspecialchars($_POST['name'] ?? '') ?>">
                 </div>
-                <?php $oldJenis = strtolower($_POST['jenis'] ?? ''); ?>
+
                 <div class="field">
                     <label>Jenis Group</label>
                     <select name="jenis" required>
-                        <option value="" disabled <?= $oldJenis === '' ? 'selected' : ''; ?>>-- Pilih jenis --</option>
-                        <option value="public" <?= $oldJenis === 'public' ? 'selected' : ''; ?>>Public</option>
-                        <option value="private" <?= $oldJenis === 'private' ? 'selected' : ''; ?>>Private</option>
+                        <option value="" disabled <?= empty($_POST['jenis']) ? 'selected' : '' ?>>-- Pilih jenis --</option>
+                        <option value="public" <?= ($_POST['jenis'] ?? '') === 'public' ? 'selected' : '' ?>>Public</option>
+                        <option value="private" <?= ($_POST['jenis'] ?? '') === 'private' ? 'selected' : '' ?>>Private</option>
                     </select>
                 </div>
+
                 <div class="field">
                     <label>Deskripsi</label>
-                    <textarea name="description" rows="3" placeholder="Keterangan singkat"></textarea>
+                    <textarea name="description" rows="3"
+                        placeholder="Keterangan singkat"><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
                 </div>
-                <p class="muted">Tanggal pembuatan dicatat otomatis: <?= date('Y-m-d H:i'); ?> (waktu server).</p>
-                <p class="muted">Kode pendaftaran dibuat otomatis dan bisa dilihat di halaman detail grup setelah tersimpan.</p>
+
+                <p class="muted">
+                    Tanggal pembuatan dan kode pendaftaran dibuat otomatis oleh sistem.
+                </p>
+
                 <button type="submit" class="btn">Simpan</button>
             </form>
         </div>

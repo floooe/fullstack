@@ -43,13 +43,13 @@ $isMember = mysqli_num_rows(mysqli_query($conn, "SELECT 1 FROM member_grup WHERE
 $info = isset($_GET['msg']) ? $_GET['msg'] : null;
 $errors = [];
 
-=if (isset($_GET['leave']) && $isMember) {
+if (isset($_GET['leave']) && $isMember) {
     mysqli_query($conn, "DELETE FROM member_grup WHERE idgrup=$groupId AND username='$username'");
     header("Location: groups.php?msg=Berhasil keluar dari grup");
     exit;
 }
 
-=if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['join_code']) && !$isMember) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['join_code']) && !$isMember) {
     $kode = strtoupper(trim($_POST['join_code']));
     if ($kode === '' || $kode !== strtoupper($groupCode)) {
         $errors[] = "Kode salah.";
