@@ -4,42 +4,24 @@ if (!isset($_SESSION['username'])) {
     header("Location: ../../index.php");
     exit;
 }
-
 if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'mahasiswa') {
     header("Location: ../../home.php");
     exit;
 }
 
-include "../../proses/koneksi.php";
+require_once "../../class/Group.php";
 
-$username = mysqli_real_escape_string($conn, $_SESSION['username']);
+$groupObj = new Grup();
+$username = $_SESSION['username'];
 
-$joined = isset($_GET['joined']);              
-$error  = isset($_GET['error']) ? $_GET['error'] : null; 
-$info   = isset($_GET['info'])  ? $_GET['info']  : null; 
+$joined = isset($_GET['joined']);
+$error  = $_GET['error'] ?? null;
+$info   = $_GET['info'] ?? null;
 
-
-$sqlJoined = "
-    SELECT g.idgrup, g.nama, g.kode_pendaftaran, g.jenis, g.username_pembuat
-    FROM member_grup m
-    JOIN grup g ON g.idgrup = m.idgrup
-    WHERE m.username = '$username'
-    ORDER BY g.nama ASC
-";
-$qJoined = mysqli_query($conn, $sqlJoined);
-
-$sqlPublic = "
-    SELECT g.idgrup, g.nama, g.kode_pendaftaran, g.username_pembuat
-    FROM grup g
-    LEFT JOIN member_grup m 
-           ON m.idgrup = g.idgrup 
-          AND m.username = '$username'
-    WHERE LOWER(g.jenis) = 'publik'
-      AND m.idgrup IS NULL
-    ORDER BY g.nama ASC
-";
-$qPublic = mysqli_query($conn, $sqlPublic);
+$qJoined = $groupObj->getJoinedGroupsByUser($username);
+$qPublic = $groupObj->getPublicGroupsNotJoined($username);
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>

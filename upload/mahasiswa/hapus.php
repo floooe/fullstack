@@ -1,74 +1,23 @@
 <?php
 session_start();
-if (!isset($_SESSION['username']) || !isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
+if (!isset($_SESSION['username']) || $_SESSION['level'] !== 'admin') {
     header('Location: ../../home.php');
     exit;
 }
-$mysqli = new mysqli("localhost", 'root', '', 'fullstack');
-if ($mysqli->connect_errno) {
-    die("Koneksi Gagal: " . $mysqli->connect_error);
-}
 
-if (isset($_GET['nrp'])) {
-    $nrp_to_delete = $_GET['nrp'];
+require_once "../../class/Mahasiswa.php";
 
-    $colRes = $mysqli->query("SHOW COLUMNS FROM mahasiswa");
-    $hasAkunCol = false;
-    while ($c = $colRes->fetch_assoc()) {
-        if ($c['Field'] === 'akun_username') { $hasAkunCol = true; break; }
-    }
-    $colRes->free();
-
-    $query_select = $hasAkunCol
-        ? "SELECT foto_extention, akun_username FROM mahasiswa WHERE nrp = ?"
-        : "SELECT foto_extention FROM mahasiswa WHERE nrp = ?";
-    $stmt_select = $mysqli->prepare($query_select);
-    $stmt_select->bind_param('s', $nrp_to_delete);
-    $stmt_select->execute();
-    $result = $stmt_select->get_result();
-    $akun_username = null;
-    
-    if ($data = $result->fetch_assoc()) {
-        $foto_extension = $data['foto_extention'];
-        if ($hasAkunCol && !empty($data['akun_username'])) {
-            $akun_username = $data['akun_username'];
-        }
-        
-        if (!empty($foto_extension)) {
-            $nama_file_foto = $nrp_to_delete . '.' . $foto_extension;
-            $path_to_file = "../../uploads/mahasiswa/" . $nama_file_foto;
-            
-            if (file_exists($path_to_file)) {
-                unlink($path_to_file);
-            }
-        }
-    }
-    $stmt_select->close();
-
-    $query_delete = "DELETE FROM mahasiswa WHERE nrp = ?";
-    $stmt_delete = $mysqli->prepare($query_delete);
-    $stmt_delete->bind_param('s', $nrp_to_delete);
-
-    if ($stmt_delete->execute()) {
-        $stmt_akun = $mysqli->prepare("DELETE FROM akun WHERE username = ?");
-        $stmt_akun->bind_param('s', $nrp_to_delete);
-        $stmt_akun->execute();
-        if ($akun_username && $akun_username !== $nrp_to_delete) {
-            $stmt_akun->bind_param('s', $akun_username);
-            $stmt_akun->execute();
-        }
-        $stmt_akun->close();
-
-        header("Location: index.php");
-        exit;
-    } else {
-        echo "DATABASE ERROR: " . $stmt_delete->error;
-    }
-    $stmt_delete->close();
-    
-} else {
+if (!isset($_GET['nrp'])) {
     die("Error: NRP mahasiswa tidak ditemukan.");
 }
 
-$mysqli->close();
-?>
+$nrp = $_GET['nrp'];
+$mahasiswa = new Mahasiswa();
+
+try {
+    $mahasiswa->deleteFull($nrp);
+    header("Location: index.php?msg=deleted");
+    exit;
+} catch (Exception $e) {
+    die("DATABASE ERROR: " . $e->getMessage());
+}

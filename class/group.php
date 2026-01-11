@@ -1,10 +1,12 @@
 <?php
 require_once "Database.php";
 
-class Grup extends Database {
+class Grup extends Database
+{
 
     // ambil grup milik dosen
-    public function getByDosen($username) {
+    public function getByDosen($username)
+    {
         $username = mysqli_real_escape_string($this->conn, $username);
         return mysqli_query(
             $this->conn,
@@ -15,8 +17,9 @@ class Grup extends Database {
     }
 
     // cek kepemilikan grup
-    public function isOwner($idgrup, $username) {
-        $idgrup = (int)$idgrup;
+    public function isOwner($idgrup, $username)
+    {
+        $idgrup = (int) $idgrup;
         $username = mysqli_real_escape_string($this->conn, $username);
 
         $q = mysqli_query(
@@ -28,8 +31,9 @@ class Grup extends Database {
     }
 
     //hapus grup + relasi
-    public function deleteGrup($idgrup) {
-        $idgrup = (int)$idgrup;
+    public function deleteGrup($idgrup)
+    {
+        $idgrup = (int) $idgrup;
 
         //hapus member
         if ($this->tableExists('member_grup')) {
@@ -46,13 +50,15 @@ class Grup extends Database {
         mysqli_query($this->conn, "DELETE FROM grup WHERE idgrup=$idgrup");
     }
 
-    private function tableExists($table) {
+    private function tableExists($table)
+    {
         $res = mysqli_query($this->conn, "SHOW TABLES LIKE '$table'");
         return $res && mysqli_num_rows($res) > 0;
     }
 
     //create group
-    public function createGroup($nama, $jenis, $deskripsi, $username) {
+    public function createGroup($nama, $jenis, $deskripsi, $username)
+    {
         $kode = strtoupper(substr(md5(uniqid()), 0, 6));
 
         $stmt = $this->conn->prepare(
@@ -103,7 +109,7 @@ class Grup extends Database {
 
         return $this->conn->insert_id;
     }
-    
+
     public function getByOwner($username)
     {
         $stmt = $this->conn->prepare(
@@ -113,4 +119,106 @@ class Grup extends Database {
         $stmt->execute();
         return $stmt->get_result();
     }
+    public function getById($groupId)
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT * FROM grup WHERE idgrup = ?"
+        );
+        $stmt->bind_param("i", $groupId);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
+
+    public function isMember($groupId, $username)
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT 1 FROM member_grup WHERE idgrup = ? AND username = ?"
+        );
+        $stmt->bind_param("is", $groupId, $username);
+        $stmt->execute();
+        return $stmt->get_result()->num_rows > 0;
+    }
+    public function joinGroup($groupId, $username)
+    {
+        $stmt = $this->conn->prepare(
+            "INSERT INTO member_grup (idgrup, username) VALUES (?, ?)"
+        );
+        $stmt->bind_param("is", $groupId, $username);
+        return $stmt->execute();
+    }
+
+    public function leaveGroup($groupId, $username)
+    {
+        $stmt = $this->conn->prepare(
+            "DELETE FROM member_grup WHERE idgrup = ? AND username = ?"
+        );
+        $stmt->bind_param("is", $groupId, $username);
+        return $stmt->execute();
+    }
+
+    public function getMembers($groupId)
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT mg.username,
+                    COALESCE(d.nama, m.nama) AS nama,
+                    CASE
+                        WHEN d.npk IS NOT NULL THEN 'Dosen'
+                        WHEN m.nrp IS NOT NULL THEN 'Mahasiswa'
+                        ELSE 'User'
+                    END AS tipe
+             FROM member_grup mg
+             LEFT JOIN dosen d ON d.npk = mg.username
+             LEFT JOIN mahasiswa m ON m.nrp = mg.username
+             WHERE mg.idgrup = ?
+             ORDER BY tipe, nama"
+        );
+        $stmt->bind_param("i", $groupId);
+        $stmt->execute();
+        return $stmt->get_result();
+    }
+    public function getJoinedGroupsByUser($username)
+    {
+        $u = mysqli_real_escape_string($this->conn, $username);
+
+        $sql = "
+        SELECT g.idgrup, g.nama, g.kode_pendaftaran, g.jenis, g.username_pembuat
+        FROM member_grup m
+        JOIN grup g ON g.idgrup = m.idgrup
+        WHERE m.username = '$u'
+        ORDER BY g.nama ASC
+    ";
+
+        return mysqli_query($this->conn, $sql);
+    }
+
+    public function getPublicGroupsNotJoined($username)
+    {
+        $u = mysqli_real_escape_string($this->conn, $username);
+
+        $sql = "
+        SELECT g.idgrup, g.nama, g.kode_pendaftaran, g.username_pembuat
+        FROM grup g
+        LEFT JOIN member_grup m 
+               ON m.idgrup = g.idgrup 
+              AND m.username = '$u'
+        WHERE LOWER(g.jenis) = 'publik'
+          AND m.idgrup IS NULL
+        ORDER BY g.nama ASC
+    ";
+
+        return mysqli_query($this->conn, $sql);
+    }
+    public function getByKode($kode)
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT * FROM grup 
+             WHERE TRIM(UPPER(kode_pendaftaran)) = ?
+             LIMIT 1"
+        );
+        $kode = strtoupper(trim($kode));
+        $stmt->bind_param("s", $kode);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
+
 }
