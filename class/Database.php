@@ -9,11 +9,17 @@ class Database
             "localhost",
             "root",
             "",
-            "fullstack" // NAMA DATABASE
+            "fullstack"
         );
 
         if (!$this->conn) {
             die("Koneksi database gagal");
         }
+
     }
+    protected function esc($str)
+    {
+        return mysqli_real_escape_string($this->conn, $str);
+    }
+
 }

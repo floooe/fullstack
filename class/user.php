@@ -5,7 +5,7 @@ class User extends Database
 {
     public function detectLevel($username)
     {
-        $u = $this->escape($username);
+        $u = $this->esc($username);
 
         // cek dosen
         $qDosen = mysqli_query(

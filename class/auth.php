@@ -44,4 +44,15 @@ class Auth extends Database
 
         return 'mahasiswa';
     }
+    public function changePassword($username, $newPassword)
+    {
+        $u = mysqli_real_escape_string($this->conn, $username);
+        $p = md5($newPassword);
+
+        return mysqli_query(
+            $this->conn,
+            "UPDATE akun SET password='$p' WHERE username='$u'"
+        );
+    }
+
 }

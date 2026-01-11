@@ -10,18 +10,20 @@ if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
     exit;
 }
 
-include __DIR__ . '/proses/koneksi.php';
+require_once __DIR__ . '/class/Dosen.php';
+
+$dosenObj = new Dosen();
+
 
 $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 5;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $start = ($page - 1) * $limit;
 
-$totalRes = mysqli_query($conn, 'SELECT COUNT(*) AS total FROM dosen');
-$totalRow = mysqli_fetch_assoc($totalRes);
-$total = (int)$totalRow['total'];
+$total = $dosenObj->countAll();
 $pages = max(1, (int)ceil($total / $limit));
 
-$q = mysqli_query($conn, "SELECT npk, nama, foto_extension FROM dosen ORDER BY npk ASC LIMIT $start, $limit");
+$q = $dosenObj->getAll($start, $limit);
+
 ?>
 <!DOCTYPE html>
 <html lang="id">

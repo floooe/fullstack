@@ -10,21 +10,21 @@ if (!isset($_SESSION['level']) || $_SESSION['level'] !== 'admin') {
     exit;
 }
 
-include __DIR__ . '/proses/koneksi.php';
+require_once __DIR__ . '/class/Mahasiswa.php';
+
+$mahasiswaObj = new Mahasiswa();
+
 
 $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 5;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $offset = ($page - 1) * $limit;
 
-$totalRes = mysqli_query($conn, 'SELECT COUNT(nrp) AS total FROM mahasiswa');
-$totalRow = mysqli_fetch_assoc($totalRes);
-$total = (int)$totalRow['total'];
+$total = $mahasiswaObj->countAll();
 $pages = max(1, (int)ceil($total / $limit));
 
-$sql = "SELECT nrp, nama, gender, tanggal_lahir, angkatan, foto_extention FROM mahasiswa ORDER BY nrp DESC LIMIT $limit OFFSET $offset";
-$result = mysqli_query($conn, $sql);
-?>
+$result = $mahasiswaObj->getAll($limit, $offset);
 
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
