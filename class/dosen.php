@@ -26,17 +26,60 @@ class Dosen extends Database
 
     public function getByNpk($npk)
     {
-        $stmt = $this->conn->prepare(
-            "SELECT npk, nama, foto_extension 
-         FROM dosen 
-         WHERE npk=?"
-        );
+        $stmt = $this->conn->prepare("
+        SELECT 
+            d.npk,
+            d.nama,
+            d.foto_extension,
+            a.username AS akun_username
+        FROM dosen d
+        LEFT JOIN akun a ON a.username = d.npk
+        WHERE d.npk = ?
+    ");
         $stmt->bind_param("s", $npk);
         $stmt->execute();
         return $stmt->get_result()->fetch_assoc();
     }
 
+    public function deleteByNpk($npk)
+    {
+        $this->conn->begin_transaction();
 
+        try {
+            // ambil data dulu
+            $stmt = $this->conn->prepare(
+                "SELECT foto_extension FROM dosen WHERE npk=?"
+            );
+            $stmt->bind_param("s", $npk);
+            $stmt->execute();
+            $data = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+
+            if (!$data) {
+                throw new Exception("Data dosen tidak ditemukan");
+            }
+
+            // hapus dosen
+            $del = $this->conn->prepare("DELETE FROM dosen WHERE npk=?");
+            $del->bind_param("s", $npk);
+            $del->execute();
+            $del->close();
+
+            // hapus akun (username = npk)
+            $delAkun = $this->conn->prepare("DELETE FROM akun WHERE username=?");
+            $delAkun->bind_param("s", $npk);
+            $delAkun->execute();
+            $delAkun->close();
+
+            $this->conn->commit();
+
+            return $data['foto_extension'];
+
+        } catch (Exception $e) {
+            $this->conn->rollback();
+            throw $e;
+        }
+    }
     public function akunExists($username)
     {
         $stmt = $this->conn->prepare(
@@ -53,11 +96,11 @@ class Dosen extends Database
             "UPDATE dosen SET npk=?, nama=?, foto_extension=? WHERE npk=?"
         );
         $stmt->bind_param("ssss", $npkBaru, $nama, $fotoExt, $npkLama);
-        $stmt->execute();
 
-        if ($stmt->affected_rows === 0) {
-            throw new Exception("Data dosen tidak ditemukan atau tidak berubah");
+        if (!$stmt->execute()) {
+            throw new Exception($stmt->error);
         }
+        return true;
     }
 
 
@@ -95,9 +138,7 @@ class Dosen extends Database
     public function updateFull($data)
     {
         $this->conn->begin_transaction();
-
         try {
-            // 1. Update dosen
             $this->updateDosen(
                 $data['npk_lama'],
                 $data['npk_baru'],
@@ -105,27 +146,15 @@ class Dosen extends Database
                 $data['foto_ext']
             );
 
-            // 2. Cegah username ganda
-            if (
-                $data['akun_baru'] !== $data['akun_lama'] &&
-                $this->akunExists($data['akun_baru'])
-            ) {
-                throw new Exception("Username akun baru sudah digunakan");
-            }
-
-            // 3. Update / insert akun
             if ($this->akunExists($data['akun_lama'])) {
                 $this->updateAkun(
                     $data['akun_lama'],
                     $data['akun_baru'],
-                    $data['password']
+                    $data['password'] ?: null
                 );
             } else {
-                if (trim($data['password']) !== '') {
-                    $this->createAkun(
-                        $data['akun_baru'],
-                        $data['password']
-                    );
+                if (!empty($data['password'])) {
+                    $this->createAkun($data['akun_baru'], $data['password']);
                 }
             }
 
@@ -137,4 +166,53 @@ class Dosen extends Database
             throw $e;
         }
     }
+    public function existsNpk($npk)
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT 1 FROM dosen WHERE npk=? LIMIT 1"
+        );
+        $stmt->bind_param("s", $npk);
+        $stmt->execute();
+        return $stmt->get_result()->num_rows > 0;
+    }
+
+    public function createDosenWithAkun($data)
+    {
+        $this->conn->begin_transaction();
+        try {
+            //insert dosen
+            $stmt = $this->conn->prepare(
+                "INSERT INTO dosen (npk, nama, foto_extension) VALUES (?, ?, ?)"
+            );
+            $stmt->bind_param(
+                "sss",
+                $data['npk'],
+                $data['nama'],
+                $data['foto_ext']
+            );
+            $stmt->execute();
+            $stmt->close();
+
+            //insert akun
+            $stmtA = $this->conn->prepare(
+                "INSERT INTO akun (username, password, isadmin) VALUES (?, MD5(?), 0)"
+            );
+            $stmtA->bind_param(
+                "ss",
+                $data['akun_username'],
+                $data['password']
+            );
+            $stmtA->execute();
+            $stmtA->close();
+
+            $this->conn->commit();
+            return true;
+
+        } catch (Exception $e) {
+            $this->conn->rollback();
+            throw $e;
+        }
+    }
+
+
 }

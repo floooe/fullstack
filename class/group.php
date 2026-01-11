@@ -27,24 +27,22 @@ class Grup extends Database {
         return mysqli_num_rows($q) > 0;
     }
 
-    // hapus grup + relasi
+    //hapus grup + relasi
     public function deleteGrup($idgrup) {
         $idgrup = (int)$idgrup;
 
-        // hapus member
+        //hapus member
         if ($this->tableExists('member_grup')) {
             mysqli_query($this->conn, "DELETE FROM member_grup WHERE idgrup=$idgrup");
         }
-
-        // hapus event
+        //hapus event
         if ($this->tableExists('events')) {
             mysqli_query($this->conn, "DELETE FROM events WHERE idgrup=$idgrup");
         }
         if ($this->tableExists('event')) {
             mysqli_query($this->conn, "DELETE FROM event WHERE idgrup=$idgrup");
         }
-
-        // hapus grup
+        //hapus grup
         mysqli_query($this->conn, "DELETE FROM grup WHERE idgrup=$idgrup");
     }
 
@@ -75,5 +73,44 @@ class Grup extends Database {
             return $kode;
         }
         return false;
+    }
+    public function generateKode($length = 6)
+    {
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        return substr(str_shuffle($chars), 0, $length);
+    }
+
+    public function create($data)
+    {
+        $stmt = $this->conn->prepare(
+            "INSERT INTO grup
+            (username_pembuat, nama, deskripsi, tanggal_pembentukan, jenis, kode_pendaftaran)
+            VALUES (?, ?, ?, NOW(), ?, ?)"
+        );
+
+        $stmt->bind_param(
+            "sssss",
+            $data['username'],
+            $data['nama'],
+            $data['deskripsi'],
+            $data['jenis'],
+            $data['kode']
+        );
+
+        if (!$stmt->execute()) {
+            throw new Exception($stmt->error);
+        }
+
+        return $this->conn->insert_id;
+    }
+    
+    public function getByOwner($username)
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT idgrup, nama FROM grup WHERE username_pembuat=? ORDER BY idgrup DESC"
+        );
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        return $stmt->get_result();
     }
 }

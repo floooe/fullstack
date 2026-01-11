@@ -86,7 +86,6 @@ if (!$data) {
 $akun = $dosen->getByNpk($npk_asli);
 $prefUser = $akun['username'] ?? $data['npk'];
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
