@@ -36,8 +36,13 @@ $message = $_GET['msg'] ?? null;
 
 <body>
 
-    <h2>Group Saya</h2>
-    <a href="create_Group.php">+ Buat Group</a>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>Group Saya</h2>
+        <div>
+            <a href="../../home.php" class="btn btn-primary btn-small">Kembali</a>
+            <a class="btn btn-small" href="create_Group.php">+ Buat Group</a>
+        </div>
+    </div>
 
     <?php if ($message) { ?>
         <p style="color:green"><?= htmlspecialchars($message) ?></p>

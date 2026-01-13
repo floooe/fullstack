@@ -79,7 +79,39 @@ if (!isset($_SESSION['username'])) {
                     </div>
                 </div>
             <?php } ?>
+            <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+                <button id="themeToggle" class="btn btn-small">Toggle Dark/Light</button>
+            </div>
         </div>
     </div>
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        const applyTheme = (dark) => {
+            const mode = dark ? 'dark' : 'light';
+            html.classList.toggle('light-theme', !dark);
+            html.classList.toggle('dark-theme', dark);
+            document.body.classList.toggle('light-theme', !dark);
+            document.body.classList.toggle('dark-theme', dark);
+            html.setAttribute('data-theme', mode);
+            document.body.setAttribute('data-theme', mode);
+            localStorage.setItem('themeMode', mode);
+            if (themeToggle) {
+                themeToggle.textContent = dark ? 'Switch to Light' : 'Switch to Dark';
+            }
+        };
+
+        const saved = localStorage.getItem('themeMode');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const initialDark = saved ? saved === 'dark' : prefersDark;
+        applyTheme(initialDark);
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentlyDark = !html.classList.contains('light-theme');
+                applyTheme(!currentlyDark);
+            });
+        }
+    </script>
 </body>
 </html>

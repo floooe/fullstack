@@ -63,8 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h2 class="page-title">Buat Group Baru</h2>
                 <p class="page-subtitle">Susun grup dan bagikan kode pendaftaran ke anggota.</p>
             </div>
-            <button type="button" class="btn btn-secondary btn-small"
-                onclick="location.href='groups.php'">Kembali</button>
+            <a href="../../home.php" class="btn btn-primary btn-small">Kembali</a>
         </div>
 
         <?php if (!empty($errors)) { ?>

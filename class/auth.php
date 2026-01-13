@@ -32,10 +32,16 @@ class Auth extends Database
 
         $u = mysqli_real_escape_string($this->conn, $username);
 
+        $conditions = ["npk='$u'"];
+        if ($this->hasColumn('dosen', 'akun_username')) {
+            $conditions[] = "akun_username='$u'";
+        }
+        $ck = implode(" OR ", $conditions);
+
         $cekDosen = mysqli_query(
             $this->conn,
             "SELECT 1 FROM dosen 
-             WHERE akun_username='$u' OR npk='$u' LIMIT 1"
+             WHERE {$ck} LIMIT 1"
         );
 
         if (mysqli_num_rows($cekDosen) > 0) {

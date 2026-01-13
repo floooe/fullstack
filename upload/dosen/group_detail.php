@@ -10,6 +10,7 @@ if (!isset($_SESSION['level']) || !in_array($_SESSION['level'], ['admin', 'dosen
 }
 
 include "../../proses/koneksi.php";
+require_once "../../class/Thread.php";
 
 function detect_jenis_enum_values($conn, $table = 'grup')
 {
@@ -90,6 +91,7 @@ $groupDesc = $group['deskripsi'];
 $isCreator = $group['username_pembuat'] === $_SESSION['username'];
 $createdBy = $group['username_pembuat'] ?? ($group['created_by'] ?? '-');
 $createdAt = $group['tanggal_pembentukan'] ?? ($group['created_at'] ?? '-');
+$threadObj = new Thread();
 
 $info = isset($_GET['msg']) ? $_GET['msg'] : null;
 $errors = [];
@@ -275,6 +277,16 @@ function ensure_grup_row($conn, $eventGroupCol, $groupId, $groupName, $groupDesc
     return mysqli_query($conn, "INSERT INTO grup($colList) VALUES ($valList)");
 }
 
+if (isset($_GET['close_thread'])) {
+    $closeId = (int) $_GET['close_thread'];
+    if ($closeId > 0) {
+        $success = $threadObj->closeThread($closeId, $_SESSION['username']);
+        $msg = $success ? 'Thread ditutup' : 'Gagal menutup thread';
+        header("Location: group_detail.php?id=$groupId&msg=" . urlencode($msg));
+        exit;
+    }
+}
+
 if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -385,6 +397,13 @@ if ($isCreator && $_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+
+    if ($action === 'create_thread') {
+        $created = $threadObj->create($groupId, $_SESSION['username']);
+        $msg = $created ? 'Thread dibuat' : 'Gagal membuat thread';
+        header("Location: group_detail.php?id=$groupId&msg=" . urlencode($msg));
+        exit;
+    }
 }
 
 if ($isCreator && isset($_GET['remove_member'])) {
@@ -493,6 +512,8 @@ if ($eventsTableReady) {
         }
     }
 }
+
+$threads = $threadObj->getByGroup($groupId);
 ?>
 <!DOCTYPE html>
 <html>
@@ -514,6 +535,10 @@ if ($eventsTableReady) {
             <button type="button" class="btn btn-small" onclick="location.href='groups.php'">Kembali ke Group
                 Saya</button>
         </div>
+
+        <?php if ($info): ?>
+            <div class="alert alert-success"><?= htmlspecialchars($info); ?></div>
+        <?php endif; ?>
 
         <div class="card section">
             <h3><?= htmlspecialchars($groupName); ?> <span
@@ -765,6 +790,53 @@ if ($eventsTableReady) {
                     </div>
                 <?php } ?>
             <?php } ?>
+        </div>
+
+        <div class="card section">
+            <div class="page-header page-header-tight">
+                <h3>Thread Grup</h3>
+                <span class="table-note"><?= $threads ? $threads->num_rows : 0; ?> thread</span>
+            </div>
+
+            <?php if ($isCreator): ?>
+                <form method="post" class="section">
+                    <input type="hidden" name="action" value="create_thread">
+                    <button type="submit" class="btn btn-primary btn-small">+ Buat Thread</button>
+                    <p class="muted" style="margin-top: 8px;">Thread baru langsung berstatus Open. Hanya pembuat yang bisa menutupnya.</p>
+                </form>
+            <?php endif; ?>
+
+            <?php if ($threads && $threads->num_rows > 0): ?>
+                <div class="table-wrapper card-compact">
+                    <table class="table-compact">
+                        <tr>
+                            <th>ID</th>
+                            <th>Pembuat</th>
+                            <th>Status</th>
+                            <th>Dibuat</th>
+                            <th>Aksi</th>
+                        </tr>
+                        <?php while ($threadRow = $threads->fetch_assoc()): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($threadRow['idthread']); ?></td>
+                                <td><?= htmlspecialchars($threadRow['nama_pembuat'] ?? $threadRow['username_pembuat']); ?></td>
+                                <td><?= htmlspecialchars($threadRow['status']); ?></td>
+                                <td><?= htmlspecialchars($threadRow['tanggal_pembuatan']); ?></td>
+                                <td>
+                                    <a class="btn btn-small" href="../chat/thread_chat.php?idthread=<?= $threadRow['idthread']; ?>">Buka Chat</a>
+                                    <?php if ($threadRow['status'] === 'Open' && $threadRow['username_pembuat'] === $_SESSION['username']): ?>
+                                        <a class="btn btn-danger btn-small"
+                                           onclick="return confirm('Tutup thread ini?')"
+                                           href="group_detail.php?id=<?= $groupId; ?>&close_thread=<?= $threadRow['idthread']; ?>">Close</a>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </table>
+                </div>
+            <?php else: ?>
+                <p class="muted">Belum ada thread di grup ini.</p>
+            <?php endif; ?>
         </div>
     </div>
 </body>

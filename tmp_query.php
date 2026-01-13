@@ -1,14 +1,16 @@
 <?php
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-$conn = new mysqli('127.0.0.1', 'root', '', 'fullstack');
+require_once "class/Grup.php";
+
 $user = 'admin';
-$res = mysqli_query($conn, "SELECT * FROM grup WHERE username_pembuat='$user'");
+$grup = new Grup();
+$res = $grup->getByDosen($user);
+
 if (!$res) {
     echo "error\n";
-    die($conn->error);
+    die($grup->getConn()->error);
 }
+
 echo mysqli_num_rows($res) . "\n";
 while ($row = mysqli_fetch_assoc($res)) {
     echo json_encode($row) . "\n";
 }
-?>

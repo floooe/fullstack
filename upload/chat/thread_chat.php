@@ -6,26 +6,14 @@ if (!isset($_SESSION['username'])) {
     exit;
 }
 
-require_once "../../class/Database.php";
-
-$db = new Database();
-$conn = $db->getConn();
-
 $idthread = isset($_GET['idthread']) ? (int) $_GET['idthread'] : 0;
 if ($idthread <= 0) {
     die("Thread tidak valid");
 }
+require_once "../../class/Thread.php";
 
-$stmt = $conn->prepare("
-    SELECT t.idthread, t.status, g.nama AS nama_grup
-    FROM thread t
-    JOIN grup g ON g.idgrup = t.idgrup
-    WHERE t.idthread = ?
-    LIMIT 1
-");
-$stmt->bind_param("i", $idthread);
-$stmt->execute();
-$thread = $stmt->get_result()->fetch_assoc();
+$threadObj = new Thread();
+$thread = $threadObj->getById($idthread);
 
 if (!$thread) {
     die("Thread tidak ditemukan");
@@ -50,6 +38,40 @@ $username = $_SESSION['username'];
             border: 1px solid #ddd;
             padding: 10px;
             background: #fafafa;
+        }
+        .chat-bubble {
+            display: inline-block;
+            max-width: 75%;
+            margin-bottom: 12px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: #e5e7eb;
+            color: #111827;
+            line-height: 1.4;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+            position: relative;
+        }
+        .chat-bubble.chat-me {
+            background: linear-gradient(135deg, #2563eb, #60a5fa);
+            color: #f8fafc;
+            align-self: flex-end;
+        }
+        .chat-bubble.chat-other {
+            background: linear-gradient(135deg, #e2e8f0, #cbd5f5);
+            color: #0f172a;
+            border: 1px solid rgba(15, 23, 42, 0.1);
+        }
+        .chat-bubble .chat-name {
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+        .chat-bubble .chat-time {
+            font-size: 0.75rem;
+            color: inherit;
+            opacity: 0.7;
+            margin-top: 4px;
+            text-align: right;
         }
     </style>
 </head>
@@ -92,6 +114,7 @@ $username = $_SESSION['username'];
     <script>
         let lastId = 0;
         const chatBox = document.getElementById('chatBox');
+        const chatText = document.getElementById('chatText');
 
         function loadChat() {
             fetch(`load_chat.php?idthread=<?= $idthread ?>&last_id=${lastId}`)
