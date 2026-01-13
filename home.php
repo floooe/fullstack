@@ -10,8 +10,8 @@ if (!isset($_SESSION['username'])) {
 <head>
     <meta charset="utf-8">
     <title>Home</title>
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/home.css">
+    <link rel="stylesheet" href="/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/asset/home.css">
 </head>
 <body class="home-page">
     <div class="page">

@@ -51,8 +51,8 @@ $groupName = $group['nama'] ?? 'Grup';
 
 <head>
     <title>Thread Grup <?= htmlspecialchars($groupName) ?></title>
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/group.css">
+    <link rel="stylesheet" href="/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/asset/group.css">
 </head>
 
 <body class="group-page">

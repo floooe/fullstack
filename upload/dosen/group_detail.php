@@ -520,9 +520,9 @@ $threads = $threadObj->getByGroup($groupId);
 
 <head>
     <title>Detail Group</title>
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/dosen.css">
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/group.css">
+    <link rel="stylesheet" href="/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/asset/dosen.css">
+    <link rel="stylesheet" href="/fullstack/asset/group.css">
 </head>
 
 <body class="dosen-page group-page">

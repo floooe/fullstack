@@ -91,8 +91,8 @@ $prefUser = $akun['username'] ?? $data['npk'];
 <head>
     <meta charset="UTF-8">
     <title>Edit Dosen</title>
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/dosen.css">
+    <link rel="stylesheet" href="/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/asset/dosen.css">
 </head>
 
 <body class="dosen-page">

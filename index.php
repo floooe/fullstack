@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['username'] = $user['username'];
         $_SESSION['level'] = $user['level'];
 
-        header("Location: /fullstack/fullstack/home.php");
+        header("Location: /fullstack/home.php");
         exit;
     }
 }

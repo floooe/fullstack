@@ -39,8 +39,8 @@ $threads = $threadObj->getByGroup($idgrup);
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Thread Grup</title>
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/group.css">
+    <link rel="stylesheet" href="/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/asset/group.css">
     <style>
         body.mahasiswa-page .page {
             max-width: 960px;

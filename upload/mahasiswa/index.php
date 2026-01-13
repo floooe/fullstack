@@ -32,8 +32,8 @@ $result = $mahasiswa->getAll($limit, $offset);
 <head>
     <meta charset="UTF-8">
     <title>Data Mahasiswa</title>
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/mahasiswa.css">
+    <link rel="stylesheet" href="/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/asset/mahasiswa.css">
 </head>
 
 <body class="mahasiswa-page">

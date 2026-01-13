@@ -31,7 +31,7 @@ $message = $_GET['msg'] ?? null;
 
 <head>
     <title>Group Saya</title>
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/asset/style.css">
 </head>
 
 <body>

@@ -26,9 +26,9 @@ $qPublic = $groupObj->getPublicGroupsNotJoined($username);
 <html>
 <head>
     <title>Group Saya (Mahasiswa)</title>
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/mahasiswa.css">
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/group.css">
+    <link rel="stylesheet" href="/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/asset/mahasiswa.css">
+    <link rel="stylesheet" href="/fullstack/asset/group.css">
 </head>
 <body class="mahasiswa-page group-page">
 <div class="page">

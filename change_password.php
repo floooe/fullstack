@@ -9,8 +9,8 @@ if (!isset($_SESSION['username'])) {
 <html>
 <head>
     <title>Ubah Password</title>
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/change_password.css">
+    <link rel="stylesheet" href="/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/asset/change_password.css">
 </head>
 <body>
     <div class="container">

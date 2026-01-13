@@ -141,9 +141,9 @@ $threads = $threadObj->getByGroup($groupId);
 <html>
 <head>
     <title>Detail Group</title>
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/mahasiswa.css">
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/group.css">
+    <link rel="stylesheet" href="/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/asset/mahasiswa.css">
+    <link rel="stylesheet" href="/fullstack/asset/group.css">
 </head>
 
 <body class="mahasiswa-page group-page">

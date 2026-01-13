@@ -29,8 +29,8 @@ $username = $_SESSION['username'];
 
 <head>
     <title>Chat Thread</title>
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/style.css">
-    <link rel="stylesheet" href="/fullstack/fullstack/asset/group.css">
+    <link rel="stylesheet" href="/fullstack/asset/style.css">
+    <link rel="stylesheet" href="/fullstack/asset/group.css">
     <style>
         .chat-box {
             height: 420px;
