@@ -375,3 +375,121 @@ textarea {
   object-fit: contain;
   background: var(--surface);
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  body {
+    padding: 16px 0 20px;
+  }
+
+  .page {
+    width: 96%;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .hero-title {
+    font-size: 24px;
+  }
+
+  .links-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .tile {
+    padding: 10px 12px;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .btn-small {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .table-wrapper {
+    margin: 0 -16px;
+    border-radius: 0;
+  }
+
+  .stack {
+    flex-direction: column;
+  }
+
+  .stack > .card {
+    min-width: auto;
+  }
+
+  .pagination {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 16px;
+  }
+
+  .welcome-card {
+    padding: 20px;
+  }
+
+  .hero-title {
+    font-size: 20px;
+  }
+
+  .hero-sub {
+    font-size: 14px;
+  }
+
+  .badge {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  .tile strong {
+    font-size: 14px;
+  }
+
+  .tile span {
+    font-size: 12px;
+  }
+
+  .btn {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .btn-small {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+
+  .alert {
+    padding: 10px 12px;
+  }
+}

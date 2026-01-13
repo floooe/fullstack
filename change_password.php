@@ -8,6 +8,7 @@ if (!isset($_SESSION['username'])) {
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Ubah Password</title>
     <link rel="stylesheet" href="/fullstack/asset/style.css">
     <link rel="stylesheet" href="/fullstack/asset/change_password.css">
